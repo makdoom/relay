@@ -4,6 +4,9 @@
   "private": "true",
   "description": "Relay — Production-minded Real-Time Messaging Platform Monorepo",
   "scripts": {
+    "dev:api": "pnpm --filter @relay/api dev",
+    "build:api": "pnpm --filter @relay/api build",
+    "start:api": "pnpm --filter @relay/api start",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",

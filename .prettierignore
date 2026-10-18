@@ -1,8 +1,8 @@
-node_modules/
-dist/
-build/
-coverage/
-.pnpm-store/
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+**/.pnpm-store/
 pnpm-lock.yaml
 .agents/
 docs/
