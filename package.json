@@ -7,9 +7,11 @@
     "dev:api": "pnpm --filter @relay/api dev",
     "build:api": "pnpm --filter @relay/api build",
     "start:api": "pnpm --filter @relay/api start",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "eslint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "check": "biome check .",
+    "check:write": "biome check --write .",
     "typecheck": "pnpm -r --if-present run typecheck"
   },
   "keywords": [],
@@ -25,11 +27,8 @@
   "packageManager": "pnpm@12.14.0",
   "type": "module",
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@biomejs/biome": "^2.5.15",
     "@types/node": "^26.6.5",
-    "eslint": "^10.13.0",
-    "prettier": "^3.9.10",
-    "typescript": "^7.0.2",
-    "typescript-eslint": "^8.71.2"
+    "typescript": "^7.0.2"
   }
 }
