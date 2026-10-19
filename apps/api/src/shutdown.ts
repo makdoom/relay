@@ -96,7 +96,7 @@ export class ShutdownManager {
 
 export const shutdownManager = new ShutdownManager();
 
-export const setupGraecfullShutdown = (server: Server): ShutdownManager => {
+export const setupGracefullShutdown = (server: Server): ShutdownManager => {
   shutdownManager.registerServer(server);
   shutdownManager.attachSignalListeners();
 
