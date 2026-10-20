@@ -17,18 +17,23 @@ const envSchema = z
             "DATABASE_URL must be a valid PostgreSQL connection string starting with postgresql:// or postgres://",
         },
       )
-      .default("postgresql://postgres:postgres@localhost:5432/relay_dev"),
+      .optional(),
   })
   .superRefine((data, ctx) => {
-    if (
-      data.NODE_ENV === "production" &&
-      data.DATABASE_URL.includes("localhost")
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message: "DATABASE_URL should not be localhost in production",
-        path: ["DATABASE_URL"],
-      });
+    if (data.NODE_ENV === "production") {
+      if (!data.DATABASE_URL) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["DATABASE_URL"],
+          message: "DATABASE_URL is required in production",
+        });
+      } else if (data.DATABASE_URL.includes("localhost")) {
+        ctx.addIssue({
+          code: "custom",
+          message: "DATABASE_URL should not be localhost in production",
+          path: ["DATABASE_URL"],
+        });
+      }
     }
   });
 
@@ -55,11 +60,16 @@ const validateConfig = (
 
   const { HOST, PORT, NODE_ENV, DATABASE_URL } = result.data;
 
+  const defaultDbUrl =
+    NODE_ENV === "test"
+      ? "postgresql://postgres:postgres@localhost:5432/relay_test"
+      : "postgresql://postgres:postgres@localhost:5432/relay_dev";
+
   return {
     env: NODE_ENV,
     port: PORT,
     host: HOST,
-    databaseUrl: DATABASE_URL,
+    databaseUrl: DATABASE_URL ?? defaultDbUrl,
   };
 };
 
