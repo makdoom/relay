@@ -1,22 +1,21 @@
 const SENSITIVE_KEYS = new Set([
-  "password",
-  "token",
-  "refreshtoken",
-  "accesstoken",
-  "authorization",
-  "cookie",
-  "secret",
-  "apikey",
-  "credentials",
+  'password',
+  'token',
+  'refreshtoken',
+  'accesstoken',
+  'authorization',
+  'cookie',
+  'secret',
+  'apikey',
+  'credentials',
 ]);
 
 type ContextType = Record<string, unknown> | undefined;
 
-type LogLevel = "info" | "warn" | "error" | "debug";
+type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
 const sanitizeContext = (data: unknown): unknown => {
-  if (data === null || data === undefined || typeof data !== "object")
-    return data;
+  if (data === null || data === undefined || typeof data !== 'object') return data;
 
   if (Array.isArray(data)) {
     return data.map((item) => sanitizeContext(item));
@@ -28,8 +27,8 @@ const sanitizeContext = (data: unknown): unknown => {
     const lowerKey = key.toLowerCase();
 
     if (SENSITIVE_KEYS.has(lowerKey)) {
-      sanitized[key] = "*****";
-    } else if (typeof value === "object" && value !== null) {
+      sanitized[key] = '*****';
+    } else if (typeof value === 'object' && value !== null) {
       sanitized[key] = sanitizeContext(value);
     } else {
       sanitized[key] = value;
@@ -52,15 +51,15 @@ const formatLog = (level: LogLevel, message: string, context: ContextType) => {
 
 export const logger = {
   info(message: string, context?: ContextType): void {
-    console.log(formatLog("info", message, context));
+    console.log(formatLog('info', message, context));
   },
   warn(message: string, context?: Record<string, unknown>): void {
-    console.warn(formatLog("warn", message, context));
+    console.warn(formatLog('warn', message, context));
   },
   error(message: string, context?: Record<string, unknown>): void {
-    console.error(formatLog("error", message, context));
+    console.error(formatLog('error', message, context));
   },
   debug(message: string, context?: Record<string, unknown>): void {
-    console.debug(formatLog("debug", message, context));
+    console.debug(formatLog('debug', message, context));
   },
 };

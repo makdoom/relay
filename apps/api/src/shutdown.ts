@@ -1,21 +1,17 @@
-import { Server } from "node:http";
-import { logger } from "./logger/index.js";
+import type { Server } from 'node:http';
+import { logger } from './logger/index.js';
 
 type CleanupHandler = () => Promise<void> | void;
 type ExitHandler = (code: number) => void;
 
 export class ShutdownManager {
   private isShuttingDown = false;
-  private cleanupHandlers: Array<{ name: string; handler: CleanupHandler }> =
-    [];
+  private cleanupHandlers: Array<{ name: string; handler: CleanupHandler }> = [];
   private server: Server | null = null;
   private timeoutMs: number;
   private exitHandler: ExitHandler;
 
-  constructor(
-    timeoutMs = 10000,
-    exitHandler: ExitHandler = (code) => process.exit(code),
-  ) {
+  constructor(timeoutMs = 10000, exitHandler: ExitHandler = (code) => process.exit(code)) {
     this.timeoutMs = timeoutMs;
     this.exitHandler = exitHandler;
   }
@@ -30,7 +26,7 @@ export class ShutdownManager {
 
   public async shutdown(signal: string): Promise<void> {
     if (this.isShuttingDown) {
-      logger.warn("Shutdown already in progress, ignoring duplicate signal", {
+      logger.warn('Shutdown already in progress, ignoring duplicate signal', {
         signal,
       });
       return;
@@ -43,7 +39,7 @@ export class ShutdownManager {
 
     // Enforce bounded timeout to prevent hanging indefinitely
     const forceExitTimer = setTimeout(() => {
-      logger.error("Graceful shutdown timed out. Forcing process exit.", {
+      logger.error('Graceful shutdown timed out. Forcing process exit.', {
         timeoutMs: this.timeoutMs,
       });
       this.exitHandler(1);
@@ -54,7 +50,7 @@ export class ShutdownManager {
 
     try {
       // Step 1: Close the HTTP Server (stop accepting new connections)
-      if (this.server && this.server.listening) {
+      if (this.server?.listening) {
         await new Promise<void>((resolve, reject) => {
           this.server?.close((err) => {
             if (err) {
@@ -64,7 +60,7 @@ export class ShutdownManager {
             }
           });
         });
-        logger.info("HTTP server stopped accepting connections");
+        logger.info('HTTP server stopped accepting connections');
       }
 
       // 2. Execute registered cleanup handlers (in reverse registration order)
@@ -74,10 +70,10 @@ export class ShutdownManager {
         logger.info(`Resource closed: ${name}`);
       }
 
-      logger.info("Graceful shutdown completed successfully");
+      logger.info('Graceful shutdown completed successfully');
       this.exitHandler(0);
     } catch (error) {
-      logger.error("Error during graceful shutdown", {
+      logger.error('Error during graceful shutdown', {
         error: error instanceof Error ? error.message : String(error),
       });
       this.exitHandler(1);
@@ -89,8 +85,8 @@ export class ShutdownManager {
       void this.shutdown(signal);
     };
 
-    process.on("SIGTERM", () => handleSignal("SIGTERM"));
-    process.on("SIGINT", () => handleSignal("SIGINT"));
+    process.on('SIGTERM', () => handleSignal('SIGTERM'));
+    process.on('SIGINT', () => handleSignal('SIGINT'));
   }
 }
 

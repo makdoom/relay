@@ -1,8 +1,8 @@
-import { drizzle, PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { config } from "../config/index.js";
-import { logger } from "../logger/index.js";
-import * as schema from "./schema/index.js";
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+import { config } from '../config/index.js';
+import { logger } from '../logger/index.js';
+import * as schema from './schema/index.js';
 
 export type DbClient = postgres.Sql;
 export type Database = PostgresJsDatabase<typeof schema>;
@@ -13,14 +13,14 @@ export const createDatabaseClient = (
     max?: number;
     idleTimeout?: number;
     connectTimeout?: number;
-    ssl?: boolean | "require";
-  } = {},
+    ssl?: boolean | 'require';
+  } = {}
 ): { sql: DbClient; db: Database } => {
   const sql = postgres(databaseUrl, {
-    max: options.max ?? (config.env === "test" ? 5 : 10),
+    max: options.max ?? (config.env === 'test' ? 5 : 10),
     idle_timeout: options.idleTimeout ?? 20,
     connect_timeout: options.connectTimeout ?? 10,
-    ssl: options.ssl ?? (config.env === "production" ? "require" : false),
+    ssl: options.ssl ?? (config.env === 'production' ? 'require' : false),
     onnotice: () => {},
   });
 
@@ -34,7 +34,7 @@ export const { sql, db } = createDatabaseClient(config.databaseUrl);
 
 export const checkDatabaseConnection = async (
   client: DbClient = sql,
-  timeoutMs = 5000,
+  timeoutMs = 5000
 ): Promise<{ ok: boolean; latencyMs?: number; error?: string }> => {
   const start = Date.now();
 
@@ -54,7 +54,7 @@ export const checkDatabaseConnection = async (
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("Database connection check failed", { error: errorMessage });
+    logger.error('Database connection check failed', { error: errorMessage });
 
     return {
       ok: false,
@@ -65,14 +65,14 @@ export const checkDatabaseConnection = async (
 
 export const closeDatabaseConnection = async (
   client: DbClient = sql,
-  timeoutSeconds = 5,
+  timeoutSeconds = 5
 ): Promise<void> => {
   try {
     await client.end({ timeout: timeoutSeconds });
-    logger.info("Database connection pool drained successfully");
+    logger.info('Database connection pool drained successfully');
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logger.error("Error closing database connection pool", {
+    logger.error('Error closing database connection pool', {
       error: errorMessage,
     });
     throw error;

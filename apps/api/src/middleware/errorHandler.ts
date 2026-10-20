@@ -1,15 +1,10 @@
-import { NextFunction, Request, Response } from "express";
-import { AppError } from "../error/index.js";
-import { logger } from "../logger/index.js";
+import type { NextFunction, Request, Response } from 'express';
+import { AppError } from '../error/index.js';
+import { logger } from '../logger/index.js';
 
-export const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  _next: NextFunction,
-) => {
+export const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof AppError) {
-    logger.warn("Operational error encountered", {
+    logger.warn('Operational error encountered', {
       method: req.method,
       path: req.originalUrl || req.path,
       statusCode: err.statusCode,
@@ -27,7 +22,7 @@ export const errorHandler = (
   }
 
   // Unexpected / programmer error: log full stack internally, return generic error to client
-  logger.error("Unhandled internal server error", {
+  logger.error('Unhandled internal server error', {
     method: req.method,
     path: req.originalUrl || req.path,
     errorMessage: err.message,
@@ -36,8 +31,8 @@ export const errorHandler = (
 
   res.status(500).json({
     error: {
-      code: "INTERNAL_SERVER_ERROR",
-      message: "An unexpected error occurred",
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An unexpected error occurred',
     },
   });
 };
