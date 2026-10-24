@@ -5,6 +5,11 @@ export const ErrorCodes = {
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  UNPROCESSIBLE_ENTITY: 'UNPROCESSIBLE_ENTITY',
+  EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
+  USERNAME_ALREADY_EXISTS: 'USERNAME_ALREADY_EXISTS',
+  USER_ALREADY_EXISTS: 'USER_ALREADY_EXISTS',
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];
@@ -39,6 +44,15 @@ export class BadRequestError extends AppError {
 export class UnauthorizedError extends AppError {
   constructor(message = 'Unauthorized', code: ErrorCodes = ErrorCodes.UNAUTHORIZED) {
     super(message, 401, code, true);
+  }
+}
+
+export class UnprocessableEntityError extends AppError {
+  constructor(
+    message = 'Unprocessable Entity',
+    code: ErrorCodes = ErrorCodes.UNPROCESSIBLE_ENTITY
+  ) {
+    super(message, 422, code, true);
   }
 }
 

@@ -1,5 +1,5 @@
 import { type Request, type Response, Router } from 'express';
-import { checkDatabaseConnection } from '../db/index.js';
+import { checkDatabaseConnection } from '../../db/index.js';
 
 export const healthRouter: Router = Router();
 

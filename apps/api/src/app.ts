@@ -2,7 +2,8 @@ import express, { type Application } from 'express';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
-import { healthRouter } from './routes/health.js';
+import { authRouter } from './modules/auth/auth.route.js';
+import { healthRouter } from './modules/health/health.route.js';
 
 const createApp = (): Application => {
   const app = express();
@@ -16,6 +17,7 @@ const createApp = (): Application => {
 
   // Routes
   app.use('/health', healthRouter);
+  app.use('/api/v1/auth', authRouter);
 
   // 404 Catch-All
   app.use(notFoundHandler);
