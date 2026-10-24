@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { BadRequestError } from '../../error/index.js';
+import { BadRequestError, UnauthorizedError } from '../../error/index.js';
 import {
   ACCESS_TOKEN_COOKIE_NAME,
   ACCESS_TOKEN_MAX_AGE_MS,
@@ -96,6 +96,25 @@ export const authController = {
 
     res.status(200).json({
       message: 'Logged out successfully',
+    });
+  },
+
+
+  /**
+   * Handle get current authenticated user profile:
+   * 1. Derives authenticated user ID from req.user
+   * 2. Retrieves user record via auth service
+   * 3. Responds with HTTP 200 and serialized safe user DTO
+   */
+  async getMe(req: Request, res: Response): Promise<void> {
+    if (!req.user?.id) {
+      throw new UnauthorizedError('Authentication required', 'UNAUTHORIZED');
+    }
+
+    const user = await authService.getCurrentUser(req.user.id);
+
+    res.status(200).json({
+      user: serializeUser(user),
     });
   },
 };

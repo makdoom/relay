@@ -192,4 +192,16 @@ export const authService = {
       });
     }
   },
+
+
+  /**
+   * Retrieves the currently authenticated user's record.
+   */
+  async getCurrentUser(userId: string): Promise<User> {
+    const user = await authRepository.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedError('User account not found', 'USER_NOT_FOUND');
+    }
+    return user;
+  },
 };
