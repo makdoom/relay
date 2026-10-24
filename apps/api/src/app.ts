@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import express, { type Application } from 'express';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
@@ -14,6 +15,7 @@ const createApp = (): Application => {
   // Middlewares
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
 
   // Routes
   app.use('/health', healthRouter);
