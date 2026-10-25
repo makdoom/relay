@@ -1,4 +1,5 @@
-import { boolean, index, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { boolean, check, index, pgTable, primaryKey, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
 import { v7 as uuidv7 } from 'uuid';
 
 export const systemSettings = pgTable('system_settings', {
@@ -48,3 +49,66 @@ export const refreshTokens = pgTable(
 
 export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type NewRefreshToken = typeof refreshTokens.$inferInsert;
+
+export const conversations = pgTable(
+  'conversations',
+  {
+    id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
+    type: varchar('type', { length: 16 }).notNull(),
+    title: varchar('title', { length: 128 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [check('conversations_type_check', sql`${table.type} IN ('direct', 'group')`)]
+);
+
+export type Conversation = typeof conversations.$inferSelect;
+export type NewConversation = typeof conversations.$inferInsert;
+
+
+export const conversationMembers = pgTable(
+  'conversation_members',
+  {
+    conversationId: uuid('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    role: varchar('role', { length: 20 }).default('member').notNull(),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
+    leftAt: timestamp('left_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.conversationId, table.userId] }),
+    index('conversation_members_user_id_idx').on(table.userId),
+    check('conversation_members_role_check', sql`${table.role} IN ('member', 'admin')`),
+  ]
+);
+
+export type ConversationMember = typeof conversationMembers.$inferSelect;
+export type NewConversationMember = typeof conversationMembers.$inferInsert;
+
+
+export const directConversations = pgTable(
+  'direct_conversations',
+  {
+    conversationId: uuid('conversation_id')
+      .primaryKey()
+      .references(() => conversations.id, { onDelete: 'cascade' }),
+    userOneId: uuid('user_one_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    userTwoId: uuid('user_two_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique('direct_conversations_user_pair_unique').on(table.userOneId, table.userTwoId),
+    check('direct_conversations_user_order_check', sql`${table.userOneId} < ${table.userTwoId}`),
+    index('direct_conversations_user_two_id_idx').on(table.userTwoId),
+  ]
+);
+
+export type DirectConversation = typeof directConversations.$inferSelect;
+export type NewDirectConversation = typeof directConversations.$inferInsert;
