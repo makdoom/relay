@@ -1,11 +1,24 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../../db/index.js";
-import { Conversation, conversationMembers, conversations, directConversations } from "../../db/schema/index.js";
+import { Conversation, conversationMembers, conversations, directConversations, users } from "../../db/schema/index.js";
 
 
 export interface DirectConversationRecord {
   conversation: Conversation;
   isNew: boolean;
+}
+
+
+export interface RawConversationListRow {
+  conversationId: string;
+  type: string;
+  title: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  role: string;
+  recipientId: string | null;
+  recipientName: string | null;
+  recipientUsername: string | null;
 }
 
 
@@ -118,5 +131,33 @@ export const conversationsRepository = {
 
       throw err;
     }
+  },
+
+  /**
+   * List active conversations for a given user with recipient or group metadata.
+   * Scoped to conversation_members where left_at IS NULL.
+   */
+  async listConversationsForUser(userId: string, limit: number): Promise<RawConversationListRow[]> {
+    const otherUserId = sql<string>`CASE WHEN ${directConversations.userOneId} = ${userId} THEN ${directConversations.userTwoId} ELSE ${directConversations.userOneId} END`;
+
+    return db
+      .select({
+        conversationId: conversations.id,
+        type: conversations.type,
+        title: conversations.title,
+        createdAt: conversations.createdAt,
+        updatedAt: conversations.updatedAt,
+        role: conversationMembers.role,
+        recipientId: users.id,
+        recipientName: users.name,
+        recipientUsername: users.username,
+      })
+      .from(conversationMembers)
+      .innerJoin(conversations, eq(conversationMembers.conversationId, conversations.id))
+      .leftJoin(directConversations, eq(conversations.id, directConversations.conversationId))
+      .leftJoin(users, eq(users.id, otherUserId))
+      .where(and(eq(conversationMembers.userId, userId), isNull(conversationMembers.leftAt)))
+      .orderBy(desc(conversations.updatedAt))
+      .limit(limit);
   },
 }

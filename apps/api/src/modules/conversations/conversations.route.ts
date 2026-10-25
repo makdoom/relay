@@ -8,4 +8,5 @@ export const conversationsRouter: Router = Router();
 // All conversation routes require authentication
 conversationsRouter.use(authenticate);
 
+conversationsRouter.get('/', asyncHandler(conversationsController.listConversations));
 conversationsRouter.post('/direct', asyncHandler(conversationsController.createOrGetDirect));

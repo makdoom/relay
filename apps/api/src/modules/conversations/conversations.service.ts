@@ -1,6 +1,6 @@
 import { conversationsRepository } from './conversations.repository.js';
 import { usersService } from '../users/users.service.js';
-import type { DirectConversationResponse } from './conversations.schema.js';
+import type { ConversationListItem, DirectConversationResponse } from './conversations.schema.js';
 import { BadRequestError } from '../../error/index.js';
 
 export interface GetOrCreateDirectResult {
@@ -62,5 +62,46 @@ export const conversationsService = {
       },
       isNew,
     };
+  },
+
+  /**
+   * List conversations for the authenticated user with clean UI display metadata.
+   * Clamps limit between 1 and 50 (default 20).
+   */
+  async listConversations(params: {
+    currentUserId: string;
+    limit?: number;
+  }): Promise<ConversationListItem[]> {
+    const limit = Math.min(Math.max(params.limit ?? 20, 1), 50);
+
+    const rows = await conversationsRepository.listConversationsForUser(
+      params.currentUserId,
+      limit
+    );
+
+    return rows.map((row): ConversationListItem => {
+      if (row.type === 'direct') {
+        return {
+          id: row.conversationId,
+          type: 'direct',
+          recipient: {
+            id: row.recipientId!,
+            name: row.recipientName!,
+            username: row.recipientUsername!,
+          },
+          createdAt: row.createdAt.toISOString(),
+          updatedAt: row.updatedAt.toISOString(),
+        };
+      }
+
+      return {
+        id: row.conversationId,
+        type: 'group',
+        title: row.title,
+        role: row.role,
+        createdAt: row.createdAt.toISOString(),
+        updatedAt: row.updatedAt.toISOString(),
+      };
+    });
   },
 };
