@@ -10,3 +10,11 @@ conversationsRouter.use(authenticate);
 
 conversationsRouter.get('/', asyncHandler(conversationsController.listConversations));
 conversationsRouter.post('/direct', asyncHandler(conversationsController.createOrGetDirect));
+conversationsRouter.post('/group', asyncHandler(conversationsController.createGroup));
+conversationsRouter.patch('/:id', asyncHandler(conversationsController.updateGroup));
+conversationsRouter.post('/:id/members', asyncHandler(conversationsController.addMember));
+conversationsRouter.delete(
+  '/:id/members/:userId',
+  asyncHandler(conversationsController.removeMember)
+);
+conversationsRouter.post('/:id/leave', asyncHandler(conversationsController.leaveGroup));

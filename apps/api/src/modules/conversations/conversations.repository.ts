@@ -2,6 +2,7 @@ import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import { db } from '../../db/index.js';
 import {
   type Conversation,
+  type ConversationMember,
   conversationMembers,
   conversations,
   directConversations,
@@ -23,6 +24,15 @@ export interface RawConversationListRow {
   recipientId: string | null;
   recipientName: string | null;
   recipientUsername: string | null;
+}
+
+export interface RawGroupMemberWithUser {
+  userId: string;
+  role: string;
+  joinedAt: Date;
+  leftAt: Date | null;
+  name: string;
+  username: string;
 }
 
 export const conversationsRepository = {
@@ -162,5 +172,200 @@ export const conversationsRepository = {
       .where(and(eq(conversationMembers.userId, userId), isNull(conversationMembers.leftAt)))
       .orderBy(desc(conversations.updatedAt))
       .limit(limit);
+  },
+
+  /**
+   * Find a specific membership record by conversation ID and user ID.
+   */
+  async findMember(
+    conversationId: string,
+    userId: string
+  ): Promise<ConversationMember | undefined> {
+    const [member] = await db
+      .select()
+      .from(conversationMembers)
+      .where(
+        and(
+          eq(conversationMembers.conversationId, conversationId),
+          eq(conversationMembers.userId, userId)
+        )
+      )
+      .limit(1);
+
+    return member;
+  },
+
+  /**
+   * List active or all members of a group with user profiles.
+   */
+  async listGroupMembers(conversationId: string): Promise<RawGroupMemberWithUser[]> {
+    return db
+      .select({
+        userId: conversationMembers.userId,
+        role: conversationMembers.role,
+        joinedAt: conversationMembers.joinedAt,
+        leftAt: conversationMembers.leftAt,
+        name: users.name,
+        username: users.username,
+      })
+      .from(conversationMembers)
+      .innerJoin(users, eq(conversationMembers.userId, users.id))
+      .where(eq(conversationMembers.conversationId, conversationId));
+  },
+
+  /**
+   * Counts active admins and total active members in a conversation.
+   * Useful for validating the sole admin departure guard.
+   */
+  async countActiveAdminsAndMembers(
+    conversationId: string
+  ): Promise<{ activeAdminsCount: number; totalActiveMembersCount: number }> {
+    const [counts] = await db
+      .select({
+        activeAdminsCount: sql<number>`count(case when ${conversationMembers.role} = 'admin' then 1 end)::int`,
+        totalActiveMembersCount: sql<number>`count(*)::int`,
+      })
+      .from(conversationMembers)
+      .where(
+        and(
+          eq(conversationMembers.conversationId, conversationId),
+          isNull(conversationMembers.leftAt)
+        )
+      );
+
+    return {
+      activeAdminsCount: counts?.activeAdminsCount ?? 0,
+      totalActiveMembersCount: counts?.totalActiveMembersCount ?? 0,
+    };
+  },
+
+  /**
+   * Atomically create a group conversation, assign the creator as 'admin', and enroll invitees as 'member'.
+   */
+  async createGroupConversationAtomic(
+    title: string,
+    creatorId: string,
+    memberIds: string[]
+  ): Promise<{ conversation: Conversation; members: ConversationMember[] }> {
+    return db.transaction(async (tx) => {
+      const [createdConv] = await tx
+        .insert(conversations)
+        .values({
+          type: 'group',
+          title,
+        })
+        .returning();
+
+      const uniqueMemberIds = Array.from(new Set(memberIds)).filter((id) => id !== creatorId);
+
+      const membersToInsert = [
+        {
+          conversationId: createdConv.id,
+          userId: creatorId,
+          role: 'admin',
+        },
+        ...uniqueMemberIds.map((userId) => ({
+          conversationId: createdConv.id,
+          userId,
+          role: 'member',
+        })),
+      ];
+
+      const insertedMembers = await tx
+        .insert(conversationMembers)
+        .values(membersToInsert)
+        .returning();
+
+      return {
+        conversation: createdConv,
+        members: insertedMembers,
+      };
+    });
+  },
+
+  /**
+   * Add a member or reactivate a previously departed member.
+   */
+  async addOrReactivateMember(
+    conversationId: string,
+    userId: string
+  ): Promise<{ member: ConversationMember; wasReactivated: boolean; alreadyActive: boolean }> {
+    const existing = await this.findMember(conversationId, userId);
+
+    if (existing) {
+      if (existing.leftAt === null) {
+        return { member: existing, wasReactivated: false, alreadyActive: true };
+      }
+
+      // Reactivate departed member
+      const [reactivated] = await db
+        .update(conversationMembers)
+        .set({
+          leftAt: null,
+          joinedAt: sql`now()`,
+          role: 'member',
+        })
+        .where(
+          and(
+            eq(conversationMembers.conversationId, conversationId),
+            eq(conversationMembers.userId, userId)
+          )
+        )
+        .returning();
+
+      return { member: reactivated, wasReactivated: true, alreadyActive: false };
+    }
+
+    const [inserted] = await db
+      .insert(conversationMembers)
+      .values({
+        conversationId,
+        userId,
+        role: 'member',
+      })
+      .returning();
+
+    return { member: inserted, wasReactivated: false, alreadyActive: false };
+  },
+
+  /**
+   * Soft-remove member by setting left_at to the given departure timestamp.
+   */
+  async setMemberLeftAt(
+    conversationId: string,
+    userId: string,
+    leftAt: Date
+  ): Promise<ConversationMember | undefined> {
+    const [updated] = await db
+      .update(conversationMembers)
+      .set({
+        leftAt,
+      })
+      .where(
+        and(
+          eq(conversationMembers.conversationId, conversationId),
+          eq(conversationMembers.userId, userId),
+          isNull(conversationMembers.leftAt)
+        )
+      )
+      .returning();
+
+    return updated;
+  },
+
+  /**
+   * Update group title.
+   */
+  async updateGroupTitle(conversationId: string, title: string): Promise<Conversation | undefined> {
+    const [updated] = await db
+      .update(conversations)
+      .set({
+        title,
+        updatedAt: sql`now()`,
+      })
+      .where(and(eq(conversations.id, conversationId), eq(conversations.type, 'group')))
+      .returning();
+
+    return updated;
   },
 };
