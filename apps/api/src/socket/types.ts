@@ -1,25 +1,35 @@
-import type { Server as BaseServer, Socket as BaseSocket} from 'socket.io'
+import type { Server as BaseServer, Socket as BaseSocket } from 'socket.io';
 
 export interface SocketUser {
-  id: string
+  id: string;
 }
 
 export interface SocketData {
-  user: SocketUser
+  user: SocketUser;
 }
 
 // Client to server events map
-export interface ClientToServerEvents {}
+export type ClientToServerEvents = {};
 
 // Server to client events map
-export interface ServerToClientEvents {}
+export type ServerToClientEvents = {};
 
 // Internal server events
-export interface InterServerEvents {}
+export type InterServerEvents = {};
 
-export type AppSocket = BaseSocket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
+export type AppSocket = BaseSocket<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData
+>;
 
-export type AppSocketServer = BaseServer<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>
+export type AppSocketServer = BaseServer<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  InterServerEvents,
+  SocketData
+>;
 
 export interface SocketAuthError extends Error {
   code?: string;

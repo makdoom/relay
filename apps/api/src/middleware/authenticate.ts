@@ -1,24 +1,23 @@
-import type { NextFunction, Request, Response } from "express";
-import { ACCESS_TOKEN_COOKIE_NAME, verifyAccessToken } from "../utils/token.js";
-import { UnauthorizedError } from "../error/index.js";
+import type { NextFunction, Request, Response } from 'express';
+import { UnauthorizedError } from '../error/index.js';
+import { ACCESS_TOKEN_COOKIE_NAME, verifyAccessToken } from '../utils/token.js';
 
 // Extracts the access token from cookies or the Authorization: Bearer header.
-const extractToken = (req:Request)=>{
+const extractToken = (req: Request) => {
   // 1. Try cookie first (primary transport for browser client)
-  if (req.cookies && req.cookies[ACCESS_TOKEN_COOKIE_NAME]) {
+  if (req.cookies?.[ACCESS_TOKEN_COOKIE_NAME]) {
     return req.cookies[ACCESS_TOKEN_COOKIE_NAME];
   }
 
   // 2. Try Authorization: Bearer <token> header (API / mobile / testing fallback)
   const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7).trim();
     return token.length > 0 ? token : undefined;
   }
 
   return undefined;
-}
-
+};
 
 /**
  * Reusable Express authentication middleware:
@@ -29,8 +28,8 @@ const extractToken = (req:Request)=>{
  */
 export const authenticate = async (req: Request, _res: Response, next: NextFunction) => {
   try {
-    const token = extractToken(req)
-    if(!token) throw new UnauthorizedError('Authentication token required', 'UNAUTHORIZED');
+    const token = extractToken(req);
+    if (!token) throw new UnauthorizedError('Authentication token required', 'UNAUTHORIZED');
 
     const payload = verifyAccessToken(token);
     req.user = {
@@ -38,8 +37,7 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
     };
 
     next();
-
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};

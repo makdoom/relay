@@ -56,7 +56,7 @@ export type Config = {
   port: number;
   host: string;
   databaseUrl: string;
-  cors:{ origin: string };
+  cors: { origin: string };
   jwt: {
     accessSecret: string;
     accessExpiration: string;
@@ -82,7 +82,7 @@ const validateConfig = (rawEnv: Record<string, string | undefined> = process.env
     JWT_ACCESS_SECRETS,
     JWT_ACCESS_EXPIRATION,
     REFRESH_TOKEN_EXPIRATION_DAYS,
-    CORS_ORIGIN
+    CORS_ORIGIN,
   } = result.data;
 
   const defaultDbUrl =
@@ -95,7 +95,7 @@ const validateConfig = (rawEnv: Record<string, string | undefined> = process.env
     port: PORT,
     host: HOST,
     databaseUrl: DATABASE_URL ?? defaultDbUrl,
-    cors:{
+    cors: {
       origin: CORS_ORIGIN,
     },
     jwt: {

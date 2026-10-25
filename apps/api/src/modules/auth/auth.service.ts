@@ -193,7 +193,6 @@ export const authService = {
     }
   },
 
-
   /**
    * Retrieves the currently authenticated user's record.
    */

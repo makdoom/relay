@@ -1,11 +1,11 @@
 import 'dotenv/config';
 
+import { createServer } from 'node:http';
 import { app } from './app.js';
 import { config } from './config/index.js';
 import { checkDatabaseConnection, closeDatabaseConnection } from './db/index.js';
 import { logger } from './logger/index.js';
 import { setupGracefullShutdown, shutdownManager } from './shutdown.js';
-import { createServer } from 'node:http';
 import { createSocketServer } from './socket/index.js';
 
 async function startServer(): Promise<void> {
@@ -37,7 +37,10 @@ async function startServer(): Promise<void> {
   });
 
   shutdownManager.registerCleanup('db-pool', () => closeDatabaseConnection());
-  shutdownManager.registerCleanup('socket-server', () => new Promise<void>((resolve) => socketServer.close(() => resolve())));
+  shutdownManager.registerCleanup(
+    'socket-server',
+    () => new Promise<void>((resolve) => socketServer.close(() => resolve()))
+  );
 
   setupGracefullShutdown(server);
 }
