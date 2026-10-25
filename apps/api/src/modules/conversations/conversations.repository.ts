@@ -1,13 +1,17 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
-import { db } from "../../db/index.js";
-import { Conversation, conversationMembers, conversations, directConversations, users } from "../../db/schema/index.js";
-
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { db } from '../../db/index.js';
+import {
+  type Conversation,
+  conversationMembers,
+  conversations,
+  directConversations,
+  users,
+} from '../../db/schema/index.js';
 
 export interface DirectConversationRecord {
   conversation: Conversation;
   isNew: boolean;
 }
-
 
 export interface RawConversationListRow {
   conversationId: string;
@@ -20,7 +24,6 @@ export interface RawConversationListRow {
   recipientName: string | null;
   recipientUsername: string | null;
 }
-
 
 export const conversationsRepository = {
   /**
@@ -160,4 +163,4 @@ export const conversationsRepository = {
       .orderBy(desc(conversations.updatedAt))
       .limit(limit);
   },
-}
+};

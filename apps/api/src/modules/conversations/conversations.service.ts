@@ -1,7 +1,7 @@
-import { conversationsRepository } from './conversations.repository.js';
-import { usersService } from '../users/users.service.js';
-import type { ConversationListItem, DirectConversationResponse } from './conversations.schema.js';
 import { BadRequestError } from '../../error/index.js';
+import { usersService } from '../users/users.service.js';
+import { conversationsRepository } from './conversations.repository.js';
+import type { ConversationListItem, DirectConversationResponse } from './conversations.schema.js';
 
 export interface GetOrCreateDirectResult {
   conversation: DirectConversationResponse;

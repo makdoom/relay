@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express';
-import { conversationsService } from './conversations.service.js';
-import { createDirectConversationSchema, listConversationsQuerySchema } from './conversations.schema.js';
 import { BadRequestError, UnauthorizedError } from '../../error/index.js';
+import {
+  createDirectConversationSchema,
+  listConversationsQuerySchema,
+} from './conversations.schema.js';
+import { conversationsService } from './conversations.service.js';
 
 export const conversationsController = {
   /**

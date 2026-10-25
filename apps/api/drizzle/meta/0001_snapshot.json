@@ -77,12 +77,8 @@
           "name": "conversation_members_conversation_id_conversations_id_fk",
           "tableFrom": "conversation_members",
           "tableTo": "conversations",
-          "columnsFrom": [
-            "conversation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["conversation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -90,12 +86,8 @@
           "name": "conversation_members_user_id_users_id_fk",
           "tableFrom": "conversation_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -103,10 +95,7 @@
       "compositePrimaryKeys": {
         "conversation_members_conversation_id_user_id_pk": {
           "name": "conversation_members_conversation_id_user_id_pk",
-          "columns": [
-            "conversation_id",
-            "user_id"
-          ]
+          "columns": ["conversation_id", "user_id"]
         }
       },
       "uniqueConstraints": {},
@@ -228,12 +217,8 @@
           "name": "direct_conversations_conversation_id_conversations_id_fk",
           "tableFrom": "direct_conversations",
           "tableTo": "conversations",
-          "columnsFrom": [
-            "conversation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["conversation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -241,12 +226,8 @@
           "name": "direct_conversations_user_one_id_users_id_fk",
           "tableFrom": "direct_conversations",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_one_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_one_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -254,12 +235,8 @@
           "name": "direct_conversations_user_two_id_users_id_fk",
           "tableFrom": "direct_conversations",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_two_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_two_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -269,10 +246,7 @@
         "direct_conversations_user_pair_unique": {
           "name": "direct_conversations_user_pair_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_one_id",
-            "user_two_id"
-          ]
+          "columns": ["user_one_id", "user_two_id"]
         }
       },
       "policies": {},
@@ -370,12 +344,8 @@
           "name": "refresh_tokens_user_id_users_id_fk",
           "tableFrom": "refresh_tokens",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -385,9 +355,7 @@
         "refresh_tokens_token_hash_unique": {
           "name": "refresh_tokens_token_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token_hash"
-          ]
+          "columns": ["token_hash"]
         }
       },
       "policies": {},
@@ -482,16 +450,12 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "users_username_unique": {
           "name": "users_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         }
       },
       "policies": {},

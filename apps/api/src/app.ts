@@ -4,9 +4,9 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { authRouter } from './modules/auth/auth.route.js';
+import { conversationsRouter } from './modules/conversations/conversations.route.js';
 import { healthRouter } from './modules/health/health.route.js';
 import { userRouter } from './modules/users/users.route.js';
-import { conversationsRouter } from './modules/conversations/conversations.route.js';
 
 const createApp = (): Application => {
   const app = express();

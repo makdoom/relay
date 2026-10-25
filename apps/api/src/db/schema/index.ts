@@ -1,5 +1,16 @@
 import { sql } from 'drizzle-orm';
-import { boolean, check, index, pgTable, primaryKey, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  check,
+  index,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { v7 as uuidv7 } from 'uuid';
 
 export const systemSettings = pgTable('system_settings', {
@@ -53,7 +64,9 @@ export type NewRefreshToken = typeof refreshTokens.$inferInsert;
 export const conversations = pgTable(
   'conversations',
   {
-    id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
+    id: uuid('id')
+      .primaryKey()
+      .$defaultFn(() => uuidv7()),
     type: varchar('type', { length: 16 }).notNull(),
     title: varchar('title', { length: 128 }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -65,12 +78,15 @@ export const conversations = pgTable(
 export type Conversation = typeof conversations.$inferSelect;
 export type NewConversation = typeof conversations.$inferInsert;
 
-
 export const conversationMembers = pgTable(
   'conversation_members',
   {
-    conversationId: uuid('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
-    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    conversationId: uuid('conversation_id')
+      .notNull()
+      .references(() => conversations.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     role: varchar('role', { length: 20 }).default('member').notNull(),
     joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
     leftAt: timestamp('left_at', { withTimezone: true }),
@@ -86,7 +102,6 @@ export const conversationMembers = pgTable(
 
 export type ConversationMember = typeof conversationMembers.$inferSelect;
 export type NewConversationMember = typeof conversationMembers.$inferInsert;
-
 
 export const directConversations = pgTable(
   'direct_conversations',

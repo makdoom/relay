@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { conversationsController } from './conversations.controller.js';
-import { asyncHandler } from '../../utils/asyncHandler.js';
 import { authenticate } from '../../middleware/authenticate.js';
+import { asyncHandler } from '../../utils/asyncHandler.js';
+import { conversationsController } from './conversations.controller.js';
 
 export const conversationsRouter: Router = Router();
 
