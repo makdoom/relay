@@ -5,6 +5,8 @@ import { config } from './config/index.js';
 import { checkDatabaseConnection, closeDatabaseConnection } from './db/index.js';
 import { logger } from './logger/index.js';
 import { setupGracefullShutdown, shutdownManager } from './shutdown.js';
+import { createServer } from 'node:http';
+import { createSocketServer } from './socket/index.js';
 
 async function startServer(): Promise<void> {
   const status = await checkDatabaseConnection(undefined, 3000);
@@ -23,7 +25,10 @@ async function startServer(): Promise<void> {
     latencyMs: status.latencyMs,
   });
 
-  const server = app.listen(config.port, config.host, () => {
+  const server = createServer(app);
+  const socketServer = createSocketServer(server);
+
+  server.listen(config.port, config.host, () => {
     logger.info(`Server is running on http://${config.host}:${config.port}`);
   });
 
@@ -32,6 +37,7 @@ async function startServer(): Promise<void> {
   });
 
   shutdownManager.registerCleanup('db-pool', () => closeDatabaseConnection());
+  shutdownManager.registerCleanup('socket-server', () => new Promise<void>((resolve) => socketServer.close(() => resolve())));
 
   setupGracefullShutdown(server);
 }

@@ -18,6 +18,7 @@ const envSchema = z
       .default('dev-jwt-access-secret-minimum-32-chars-long'),
     JWT_ACCESS_EXPIRATION: z.string().default('15m'),
     REFRESH_TOKEN_EXPIRATION_DAYS: z.coerce.number().int().positive().default(7),
+    CORS_ORIGIN: z.string().default('http://localhost:3000'),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === 'production') {
@@ -55,6 +56,7 @@ export type Config = {
   port: number;
   host: string;
   databaseUrl: string;
+  cors:{ origin: string };
   jwt: {
     accessSecret: string;
     accessExpiration: string;
@@ -80,6 +82,7 @@ const validateConfig = (rawEnv: Record<string, string | undefined> = process.env
     JWT_ACCESS_SECRETS,
     JWT_ACCESS_EXPIRATION,
     REFRESH_TOKEN_EXPIRATION_DAYS,
+    CORS_ORIGIN
   } = result.data;
 
   const defaultDbUrl =
@@ -92,6 +95,9 @@ const validateConfig = (rawEnv: Record<string, string | undefined> = process.env
     port: PORT,
     host: HOST,
     databaseUrl: DATABASE_URL ?? defaultDbUrl,
+    cors:{
+      origin: CORS_ORIGIN,
+    },
     jwt: {
       accessSecret: JWT_ACCESS_SECRETS,
       accessExpiration: JWT_ACCESS_EXPIRATION,

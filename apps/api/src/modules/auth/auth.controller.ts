@@ -43,11 +43,7 @@ export const authController = {
     const { user, accessToken, rawRefreshToken } = await authService.loginUser(parseResult.data);
 
     res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, getCookieOptions(ACCESS_TOKEN_MAX_AGE_MS));
-    res.cookie(
-      REFRESH_TOKEN_COOKIE_NAME,
-      rawRefreshToken,
-      getCookieOptions(REFRESH_TOKEN_MAX_AGE_MS)
-    );
+    res.cookie(REFRESH_TOKEN_COOKIE_NAME, rawRefreshToken,getCookieOptions(REFRESH_TOKEN_MAX_AGE_MS));
 
     res.status(200).json({
       user: serializeUser(user),
