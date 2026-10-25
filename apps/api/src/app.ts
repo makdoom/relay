@@ -6,6 +6,7 @@ import { requestLogger } from './middleware/requestLogger.js';
 import { authRouter } from './modules/auth/auth.route.js';
 import { healthRouter } from './modules/health/health.route.js';
 import { userRouter } from './modules/users/users.route.js';
+import { conversationsRouter } from './modules/conversations/conversations.route.js';
 
 const createApp = (): Application => {
   const app = express();
@@ -22,6 +23,7 @@ const createApp = (): Application => {
   app.use('/health', healthRouter);
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', userRouter);
+  app.use('/api/v1/conversations', conversationsRouter);
 
   // 404 Catch-All
   app.use(notFoundHandler);

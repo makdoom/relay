@@ -20,6 +20,8 @@ export const ErrorCodes = {
   REFRESH_TOKEN_REQUIRED: 'REFRESH_TOKEN_REQUIRED',
   INVALID_REFRESH_TOKEN: 'INVALID_REFRESH_TOKEN',
   TOKEN_REUSE_DETECTED: 'TOKEN_REUSE_DETECTED',
+
+  CANNOT_CHAT_WITH_SELF:'CANNOT_CHAT_WITH_SELF'
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];
