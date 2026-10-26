@@ -15,6 +15,13 @@
       "when": 1792924966865,
       "tag": "0001_conversation_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793028954423,
+      "tag": "0002_message_schema",
+      "breakpoints": true
     }
   ]
 }
