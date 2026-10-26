@@ -37,6 +37,25 @@ export interface SendMessageResult {
   isDuplicate: boolean;
 }
 
+
+export const listMessagesQuerySchema = z.object({
+  limit: z.coerce
+    .number()
+    .int('Limit must be an integer')
+    .min(1, 'Limit must be at least 1')
+    .max(50, 'Limit cannot exceed 50')
+    .default(20),
+  cursor: z.uuid('Cursor must be a valid UUID').optional(),
+});
+
+export type ListMessagesQuery = z.infer<typeof listMessagesQuerySchema>;
+
+export interface PaginatedMessagesResponse {
+  messages: MessageResponse[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export const serializeMessage = (message: Message): MessageResponse => {
   return {
     id: message.id,

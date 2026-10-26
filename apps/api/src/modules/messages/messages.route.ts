@@ -9,3 +9,5 @@ export const messagesRouter: Router = Router({ mergeParams: true });
 messagesRouter.use(authenticate);
 
 messagesRouter.post('/', asyncHandler(messagesController.sendMessage));
+messagesRouter.get('/', asyncHandler(messagesController.getMessageHistory));
+

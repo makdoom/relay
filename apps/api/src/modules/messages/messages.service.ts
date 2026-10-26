@@ -1,8 +1,8 @@
 import { NotFoundError } from '../../error/index.js';
-import { assertCanSendMessages } from '../conversations/conversations.permissions.js';
+import { assertCanAccessMessageHistory, assertCanSendMessages } from '../conversations/conversations.permissions.js';
 import { conversationsRepository } from '../conversations/conversations.repository.js';
 import { messagesRepository } from './messages.repository.js';
-import { type SendMessageResult, serializeMessage } from './messages.schema.js';
+import { PaginatedMessagesResponse, type SendMessageResult, serializeMessage } from './messages.schema.js';
 
 export const messagesService = {
   /**
@@ -90,5 +90,75 @@ export const messagesService = {
       }
       throw err;
     }
+  },
+
+  /**
+   * Retrieves message history for a conversation using keyset cursor pagination.
+   * Re-checks conversation membership authorization on every request.
+   * Enforces bounded historical access for departed members (created_at <= left_at).
+   */
+  async getMessageHistory(params: {
+    conversationId: string;
+    currentUserId: string;
+    limit: number;
+    cursor?: string;
+  }): Promise<PaginatedMessagesResponse> {
+    const { conversationId, currentUserId, limit, cursor } = params;
+
+    // Verify conversation exists
+    const conversation = await conversationsRepository.findConversationById(conversationId);
+    if (!conversation) {
+      throw new NotFoundError('Conversation not found', 'CONVERSATION_NOT_FOUND');
+    }
+
+    // Fetch requester's membership record
+    const member = await conversationsRepository.findMember(conversationId, currentUserId);
+
+    // Enforce membership authorization check via permissions policy engine
+    assertCanAccessMessageHistory(conversation, member);
+
+    // Resolve cursor coordinates if provided
+    let cursorCreatedAt: Date | undefined;
+    let cursorId: string | undefined;
+
+    if (cursor) {
+      const cursorMessage = await messagesRepository.findMessageById(cursor);
+      if (!cursorMessage || cursorMessage.conversationId !== conversationId) {
+        throw new NotFoundError(
+          'Cursor message not found in this conversation',
+          'CURSOR_NOT_FOUND'
+        );
+      }
+
+      // If departed member, cursor cannot bypass their departure bound
+      if (member && member.leftAt && cursorMessage.createdAt.getTime() > member.leftAt.getTime()) {
+        throw new NotFoundError(
+          'Cursor message not found in this conversation',
+          'CURSOR_NOT_FOUND'
+        );
+      }
+
+      cursorCreatedAt = cursorMessage.createdAt;
+      cursorId = cursorMessage.id;
+    }
+
+    // Query messages with limit + 1
+    const rawMessages = await messagesRepository.listMessagesByConversation({
+      conversationId,
+      limit,
+      cursorCreatedAt,
+      cursorId,
+      maxCreatedAt: member?.leftAt ?? null,
+    });
+
+    const hasMore = rawMessages.length > limit;
+    const pageMessages = hasMore ? rawMessages.slice(0, limit) : rawMessages;
+    const nextCursor = hasMore ? pageMessages[pageMessages.length - 1].id : null;
+
+    return {
+      messages: pageMessages.map(serializeMessage),
+      nextCursor,
+      hasMore,
+    };
   },
 };
