@@ -1,4 +1,4 @@
-import { and, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, lt, lte, or, SQL, sql } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { db } from '../../db/index.js';
 import { conversations, type Message, messages } from '../../db/schema/index.js';
@@ -8,6 +8,14 @@ export interface CreateMessageParams {
   senderId: string;
   content: string;
   idempotencyKey?: string | null;
+}
+
+export interface ListMessagesParams {
+  conversationId: string;
+  limit: number;
+  cursorCreatedAt?: Date;
+  cursorId?: string;
+  maxCreatedAt?: Date | null;
 }
 
 export const messagesRepository = {
@@ -60,5 +68,35 @@ export const messagesRepository = {
       .limit(1);
 
     return found ?? null;
+  },
+  /**
+   * Retrieves messages for a conversation ordered reverse-chronologically (created_at DESC, id DESC).
+   * Supports keyset pagination via (cursorCreatedAt, cursorId) and bounded history via maxCreatedAt.
+   * Fetches (limit + 1) rows to determine whether further pages exist.
+   */
+  async listMessagesByConversation(params: ListMessagesParams): Promise<Message[]> {
+    const { conversationId, limit, cursorCreatedAt, cursorId, maxCreatedAt } = params;
+
+    const conditions: SQL[] = [eq(messages.conversationId, conversationId)];
+
+    if (maxCreatedAt) {
+      conditions.push(lte(messages.createdAt, maxCreatedAt));
+    }
+
+    if (cursorCreatedAt && cursorId) {
+      conditions.push(
+        or(
+          lt(messages.createdAt, cursorCreatedAt),
+          and(eq(messages.createdAt, cursorCreatedAt), lt(messages.id, cursorId))
+        )!
+      );
+    }
+
+    return await db
+      .select()
+      .from(messages)
+      .where(and(...conditions))
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(limit + 1);
   },
 };

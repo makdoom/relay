@@ -34,6 +34,8 @@ export const ErrorCodes = {
   SOLE_ADMIN_CANNOT_LEAVE: 'SOLE_ADMIN_CANNOT_LEAVE',
   MESSAGE_ACCESS_BOUNDED: 'MESSAGE_ACCESS_BOUNDED',
   CONVERSATION_NOT_FOUND: 'CONVERSATION_NOT_FOUND',
+
+  CURSOR_NOT_FOUND: 'CURSOR_NOT_FOUND',
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];
