@@ -1,11 +1,11 @@
-import type { Request, Response } from "express";
-import { BadRequestError, UnauthorizedError } from "../../error/index.js";
-import { conversationIdParamSchema, sendMessageSchema } from "./messages.schema.js";
-import { messagesService } from "./messages.service.js";
+import type { Request, Response } from 'express';
+import { BadRequestError, UnauthorizedError } from '../../error/index.js';
+import { conversationIdParamSchema, sendMessageSchema } from './messages.schema.js';
+import { messagesService } from './messages.service.js';
 
 export const messagesController = {
   // Validates message payload shape, derives authenticated sender, and authorizes conversation membership.
-  async sendMessage(req:Request, res: Response): Promise<void>{
+  async sendMessage(req: Request, res: Response): Promise<void> {
     if (!req.user?.id) throw new UnauthorizedError('Authentication required', 'UNAUTHORIZED');
 
     const paramResult = conversationIdParamSchema.safeParse(req.params);
@@ -20,16 +20,16 @@ export const messagesController = {
       throw new BadRequestError(firstIssue.message, 'VALIDATION_ERROR');
     }
 
-    const createdMessage = await messagesService.sendMessage({
+    const result = await messagesService.sendMessage({
       conversationId: paramResult.data.conversationId,
       currentUserId: req.user.id,
       content: bodyResult.data.content,
       idempotencyKey: bodyResult.data.idempotencyKey,
     });
 
-    res.status(201).json({
-      message: createdMessage,
+    const statusCode = result.isDuplicate ? 200 : 201;
+    res.status(statusCode).json({
+      message: result.message,
     });
-  }
-   
-}
+  },
+};

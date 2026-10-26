@@ -1,8 +1,8 @@
-import { NotFoundError } from "../../error/index.js";
-import { assertCanSendMessages } from "../conversations/conversations.permissions.js";
-import { conversationsRepository } from "../conversations/conversations.repository.js";
-import { messagesRepository } from "./messages.repository.js";
-import { MessageResponse, serializeMessage } from "./messages.schema.js";
+import { NotFoundError } from '../../error/index.js';
+import { assertCanSendMessages } from '../conversations/conversations.permissions.js';
+import { conversationsRepository } from '../conversations/conversations.repository.js';
+import { messagesRepository } from './messages.repository.js';
+import { type SendMessageResult, serializeMessage } from './messages.schema.js';
 
 export const messagesService = {
   /**
@@ -19,7 +19,6 @@ export const messagesService = {
     // Verify conversation exists
     const conversation = await conversationsRepository.findConversationById(conversationId);
     if (!conversation) throw new NotFoundError('Conversation not found', 'CONVERSATION_NOT_FOUND');
-
 
     // Fetch membership record for authenticated user
     const member = await conversationsRepository.findMember(conversationId, currentUserId);
@@ -39,20 +38,57 @@ export const messagesService = {
     currentUserId: string;
     content: string;
     idempotencyKey?: string;
-  }): Promise<MessageResponse> {
+  }): Promise<SendMessageResult> {
     const { conversationId, currentUserId, content, idempotencyKey } = params;
 
     // Validate conversation membership & authorization
     await this.validateAndAuthorizeSend({ conversationId, currentUserId });
 
-    // Durably persist message and update conversation timestamp
-    const persisted = await messagesRepository.createMessageTransactionally({
-      conversationId,
-      senderId: currentUserId,
-      content,
-      idempotencyKey,
-    });
+    // Idempotency fast-path: check if message was already committed by this sender
+    if (idempotencyKey) {
+      const existing = await messagesRepository.findMessageBySenderAndIdempotencyKey(
+        currentUserId,
+        idempotencyKey
+      );
+      if (existing) {
+        return {
+          message: serializeMessage(existing),
+          isDuplicate: true,
+        };
+      }
+    }
 
-    return serializeMessage(persisted);
+    try {
+      // Durably persist message and update conversation timestamp
+      const persisted = await messagesRepository.createMessageTransactionally({
+        conversationId,
+        senderId: currentUserId,
+        content,
+        idempotencyKey,
+      });
+
+      return {
+        message: serializeMessage(persisted),
+        isDuplicate: false,
+      };
+    } catch (err) {
+      const dbErr = err as { code?: string; cause?: { code?: string } };
+      const code = dbErr.code || dbErr.cause?.code;
+
+      // Handle race condition where an identical retry committed concurrently (unique violation)
+      if (code === '23505' && idempotencyKey) {
+        const existing = await messagesRepository.findMessageBySenderAndIdempotencyKey(
+          currentUserId,
+          idempotencyKey
+        );
+        if (existing) {
+          return {
+            message: serializeMessage(existing),
+            isDuplicate: true,
+          };
+        }
+      }
+      throw err;
+    }
   },
-}
+};

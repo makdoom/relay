@@ -1,8 +1,7 @@
-import { eq, sql } from "drizzle-orm";
-import { db } from "../../db/index.js";
-import { conversations, Message, messages } from "../../db/schema/index.js";
+import { and, eq, sql } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
-
+import { db } from '../../db/index.js';
+import { conversations, type Message, messages } from '../../db/schema/index.js';
 
 export interface CreateMessageParams {
   conversationId: string;
@@ -40,11 +39,26 @@ export const messagesRepository = {
     });
   },
 
-
   // Finds a message by primary key UUID.
   async findMessageById(id: string): Promise<Message | null> {
     const [found] = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
 
     return found ?? null;
   },
-}
+
+  /**
+   * Finds a message by senderId and idempotencyKey.
+   */
+  async findMessageBySenderAndIdempotencyKey(
+    senderId: string,
+    idempotencyKey: string
+  ): Promise<Message | null> {
+    const [found] = await db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.senderId, senderId), eq(messages.idempotencyKey, idempotencyKey)))
+      .limit(1);
+
+    return found ?? null;
+  },
+};
