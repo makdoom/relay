@@ -1,6 +1,8 @@
 import { NotFoundError } from "../../error/index.js";
 import { assertCanSendMessages } from "../conversations/conversations.permissions.js";
 import { conversationsRepository } from "../conversations/conversations.repository.js";
+import { messagesRepository } from "./messages.repository.js";
+import { MessageResponse, serializeMessage } from "./messages.schema.js";
 
 export const messagesService = {
   /**
@@ -29,5 +31,28 @@ export const messagesService = {
       conversationId: conversation.id,
       senderId: currentUserId,
     };
+  },
+
+  // Validates sender authorization and transactionally persists the message to PostgreSQL.
+  async sendMessage(params: {
+    conversationId: string;
+    currentUserId: string;
+    content: string;
+    idempotencyKey?: string;
+  }): Promise<MessageResponse> {
+    const { conversationId, currentUserId, content, idempotencyKey } = params;
+
+    // Validate conversation membership & authorization
+    await this.validateAndAuthorizeSend({ conversationId, currentUserId });
+
+    // Durably persist message and update conversation timestamp
+    const persisted = await messagesRepository.createMessageTransactionally({
+      conversationId,
+      senderId: currentUserId,
+      content,
+      idempotencyKey,
+    });
+
+    return serializeMessage(persisted);
   },
 }

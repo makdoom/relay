@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Message } from '../../db/schema/index.js';
 
 export const conversationIdParamSchema = z.object({
   conversationId: z.uuid('Invalid conversation Id format'),
@@ -29,4 +30,16 @@ export interface MessageResponse {
   content: string;
   idempotencyKey: string | null;
   createdAt: string;
+}
+
+
+export const serializeMessage = (message: Message): MessageResponse => {
+  return {
+    id: message.id,
+    conversationId: message.conversationId,
+    senderId: message.senderId,
+    content: message.content,
+    idempotencyKey: message.idempotencyKey,
+    createdAt: message.createdAt.toISOString(),
+  };
 }

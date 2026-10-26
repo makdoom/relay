@@ -20,15 +20,15 @@ export const messagesController = {
       throw new BadRequestError(firstIssue.message, 'VALIDATION_ERROR');
     }
 
-    const authResult = await messagesService.validateAndAuthorizeSend({
+    const createdMessage = await messagesService.sendMessage({
       conversationId: paramResult.data.conversationId,
       currentUserId: req.user.id,
+      content: bodyResult.data.content,
+      idempotencyKey: bodyResult.data.idempotencyKey,
     });
 
-    res.status(200).json({
-      authorized: true,
-      conversationId: authResult.conversationId,
-      senderId: authResult.senderId,
+    res.status(201).json({
+      message: createdMessage,
     });
   }
    
