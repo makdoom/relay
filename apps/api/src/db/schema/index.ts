@@ -127,3 +127,26 @@ export const directConversations = pgTable(
 
 export type DirectConversation = typeof directConversations.$inferSelect;
 export type NewDirectConversation = typeof directConversations.$inferInsert;
+
+
+export const messages = pgTable(
+  'messages',
+  {
+    id: uuid('id').primaryKey().$defaultFn(() => uuidv7()),
+    conversationId: uuid('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+    senderId: uuid('sender_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    content: text('content').notNull(),
+    idempotencyKey: varchar('idempotency_key', { length: 64 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('messages_conversation_created_at_idx').on(table.conversationId, table.createdAt.desc(), table.id.desc()),
+    index('messages_sender_id_idx').on(table.senderId),
+    unique('messages_sender_idempotency_unique').on(table.senderId, table.idempotencyKey),
+    check('messages_content_length_check', sql`length(trim(${table.content})) > 0 AND length(${table.content}) <= 4000`),
+  ]
+);
+
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
