@@ -3,6 +3,7 @@ import { logger } from "../../logger/index.js";
 import { messagesService } from "../../modules/messages/messages.service.js";
 import { createSocketErrorAck, createSocketSuccessAck, formatZodSocketError, socketSendMessageSchema } from "../schemas.js";
 import { AppSocket, AppSocketServer, SocketMessageAckData } from "../types.js";
+import { getConversationRoomName } from "./conversations.handler.js";
 
 // Registers message-related Socket.IO event handlers for an authenticated client socket.
 export const registerMessageHandler = (_io: AppSocketServer, socket: AppSocket) => {
@@ -32,6 +33,13 @@ export const registerMessageHandler = (_io: AppSocketServer, socket: AppSocket) 
         idempotencyKey,
       });
 
+      // 3. Real-time delivery: broadcast to online recipients in the conversation room
+      // Duplicate retries (idempotency hits) are not re-broadcasted to avoid noise
+      if (!result.isDuplicate) {
+        socket.to(getConversationRoomName(conversationId)).emit('message:new', {
+          message: result.message,
+        });
+      }
       // Return persistence acknowledgement to sender via callback
       if (typeof ack === 'function') {
         ack(createSocketSuccessAck<SocketMessageAckData>(result));
