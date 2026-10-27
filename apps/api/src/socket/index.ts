@@ -4,6 +4,7 @@ import { config } from '../config/index.js';
 import { logger } from '../logger/index.js';
 import { socketAuthMiddleware } from './middleware/auth.js';
 import type { AppSocketServer } from './types.js';
+import { registerMessageHandler } from './handlers/messages.handler.js';
 
 export * from './types.js';
 export * from './schemas.js';
@@ -28,6 +29,9 @@ export const createSocketServer = (httpServer: HttpServer): AppSocketServer => {
   io.on('connection', (socket) => {
     const userId = socket.data.user.id;
     logger.info('✅ Socket client connected', { socketId: socket.id, userId });
+
+    // Register domain event hanlders
+    registerMessageHandler(io, socket)
 
     socket.on('disconnect', (reason) => {
       logger.info('❌ Socket client disconnected', { socketId: socket.id, userId, reason });
