@@ -5,6 +5,9 @@ import { logger } from '../logger/index.js';
 import { socketAuthMiddleware } from './middleware/auth.js';
 import type { AppSocketServer } from './types.js';
 
+export * from './types.js';
+export * from './schemas.js';
+
 /**
  * Creates and configures the Socket.IO server attached to an HTTP server.
  * Applies CORS, buffer limits, handshake authentication middleware, and connection lifecycle logging.
