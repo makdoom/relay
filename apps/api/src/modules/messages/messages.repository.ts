@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, lt, lte, or, SQL, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, lt, lte, or, type SQL, sql } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { db } from '../../db/index.js';
 import { conversations, type Message, messages } from '../../db/schema/index.js';
@@ -17,7 +17,6 @@ export interface ListMessagesParams {
   cursorId?: string;
   maxCreatedAt?: Date | null;
 }
-
 
 export interface ListMessagesAfterCursorParams {
   conversationId: string;

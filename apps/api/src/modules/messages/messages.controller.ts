@@ -1,6 +1,10 @@
 import type { Request, Response } from 'express';
 import { BadRequestError, UnauthorizedError } from '../../error/index.js';
-import { conversationIdParamSchema, listMessagesQuerySchema, sendMessageSchema } from './messages.schema.js';
+import {
+  conversationIdParamSchema,
+  listMessagesQuerySchema,
+  sendMessageSchema,
+} from './messages.schema.js';
 import { messagesService } from './messages.service.js';
 
 export const messagesController = {
@@ -32,7 +36,6 @@ export const messagesController = {
       message: result.message,
     });
   },
-
 
   /**
    * Retrieves paginated message history for a conversation using keyset cursor pagination.

@@ -1,6 +1,15 @@
 import type { Server as BaseServer, Socket as BaseSocket } from 'socket.io';
-import { SocketConversationRoomInput, SocketHistorySyncInput, SocketReadUpdateInput, SocketSendMessageInput, SocketTypingInput } from './schemas.js';
-import { MessageResponse, PaginatedMessagesResponse } from '../modules/messages/messages.schema.js';
+import type {
+  MessageResponse,
+  PaginatedMessagesResponse,
+} from '../modules/messages/messages.schema.js';
+import type {
+  SocketConversationRoomInput,
+  SocketHistorySyncInput,
+  SocketReadUpdateInput,
+  SocketSendMessageInput,
+  SocketTypingInput,
+} from './schemas.js';
 
 export interface SocketUser {
   id: string;
@@ -21,7 +30,6 @@ export interface SocketErrorPayload {
   details?: unknown;
 }
 
-
 /**
  * Standard request-response acknowledgement shape returned to the caller via callback.
  */
@@ -34,7 +42,6 @@ export type SocketAck<T> =
       success: false;
       error: SocketErrorPayload;
     };
-
 
 // ============================================================================
 // Message Event Payloads & State Separation
@@ -82,7 +89,6 @@ export interface SocketPresenceUpdateEvent {
   userId: string;
   status: 'online' | 'offline';
 }
-
 
 // ============================================================================
 // Read State Event Payloads (Watermark Model per ADR-005)
@@ -201,7 +207,6 @@ export interface ServerToClientEvents {
    */
   error: (error: SocketErrorPayload) => void;
 }
-
 
 // Internal server events
 export type InterServerEvents = {};

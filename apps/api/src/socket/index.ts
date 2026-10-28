@@ -2,13 +2,14 @@ import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
 import { config } from '../config/index.js';
 import { logger } from '../logger/index.js';
+import { registerConversationHandler } from './handlers/conversations.handler.js';
+import { registerMessageHandler } from './handlers/messages.handler.js';
 import { socketAuthMiddleware } from './middleware/auth.js';
 import type { AppSocketServer } from './types.js';
-import { registerMessageHandler } from './handlers/messages.handler.js';
-import { registerConversationHandler } from './handlers/conversations.handler.js';
+import { registerTypingHandlers } from './handlers/typing.handler.js';
 
-export * from './types.js';
 export * from './schemas.js';
+export * from './types.js';
 
 /**
  * Creates and configures the Socket.IO server attached to an HTTP server.
@@ -32,8 +33,9 @@ export const createSocketServer = (httpServer: HttpServer): AppSocketServer => {
     logger.info('✅ Socket client connected', { socketId: socket.id, userId });
 
     // Register domain event hanlders
-    registerMessageHandler(io, socket)
-    registerConversationHandler(io, socket)
+    registerMessageHandler(io, socket);
+    registerConversationHandler(io, socket);
+    registerTypingHandlers(io, socket)
 
     socket.on('disconnect', (reason) => {
       logger.info('❌ Socket client disconnected', { socketId: socket.id, userId, reason });
