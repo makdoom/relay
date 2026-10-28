@@ -6,6 +6,7 @@ import type {
 import type {
   SocketConversationRoomInput,
   SocketHistorySyncInput,
+  SocketPresenceQueryInput,
   SocketReadUpdateInput,
   SocketSendMessageInput,
   SocketTypingInput,
@@ -88,6 +89,13 @@ export interface SocketTypingUpdateEvent {
 export interface SocketPresenceUpdateEvent {
   userId: string;
   status: 'online' | 'offline';
+}
+
+/**
+ * Acknowledgement data returned to caller when querying user presence statuses.
+ */
+export interface SocketPresenceQueryAckData {
+  statuses: Record<string, 'online' | 'offline'>;
 }
 
 // ============================================================================
@@ -175,6 +183,14 @@ export interface ClientToServerEvents {
   'history:sync': (
     payload: SocketHistorySyncInput,
     ack: (response: SocketAck<PaginatedMessagesResponse>) => void
+  ) => void;
+
+   /**
+   * Queries the current online/offline presence status for a list of users.
+   */
+  'presence:get': (
+    payload: SocketPresenceQueryInput,
+    ack: (response: SocketAck<SocketPresenceQueryAckData>) => void
   ) => void;
 }
 
