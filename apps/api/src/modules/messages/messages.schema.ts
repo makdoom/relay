@@ -37,7 +37,6 @@ export interface SendMessageResult {
   isDuplicate: boolean;
 }
 
-
 export const listMessagesQuerySchema = z.object({
   limit: z.coerce
     .number()

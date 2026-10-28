@@ -1,8 +1,15 @@
 import { NotFoundError } from '../../error/index.js';
-import { assertCanAccessMessageHistory, assertCanSendMessages } from '../conversations/conversations.permissions.js';
+import {
+  assertCanAccessMessageHistory,
+  assertCanSendMessages,
+} from '../conversations/conversations.permissions.js';
 import { conversationsRepository } from '../conversations/conversations.repository.js';
 import { messagesRepository } from './messages.repository.js';
-import { PaginatedMessagesResponse, type SendMessageResult, serializeMessage } from './messages.schema.js';
+import {
+  type PaginatedMessagesResponse,
+  type SendMessageResult,
+  serializeMessage,
+} from './messages.schema.js';
 
 export const messagesService = {
   /**
@@ -162,7 +169,6 @@ export const messagesService = {
     };
   },
 
-
   /**
    * Synchronizes missed messages for a conversation committed after a given cursor.
    * Designed for reconnection recovery and forward synchronization.
@@ -202,7 +208,7 @@ export const messagesService = {
       }
 
       // If departed member, cursor cannot bypass their departure bound
-      if (member && member.leftAt && cursorMessage.createdAt.getTime() > member.leftAt.getTime()) {
+      if (member?.leftAt && cursorMessage?.createdAt.getTime() > member?.leftAt.getTime()) {
         throw new NotFoundError(
           'Cursor message not found in this conversation',
           'CURSOR_NOT_FOUND'

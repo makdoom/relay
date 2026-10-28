@@ -1,18 +1,23 @@
-import { AppError } from "../../error/index.js";
-import { logger } from "../../logger/index.js";
-import { PaginatedMessagesResponse } from "../../modules/messages/messages.schema.js";
-import { messagesService } from "../../modules/messages/messages.service.js";
-import { createSocketErrorAck, createSocketSuccessAck, formatZodSocketError, socketHistorySyncSchema, socketSendMessageSchema } from "../schemas.js";
-import { AppSocket, AppSocketServer, SocketMessageAckData } from "../types.js";
-import { getConversationRoomName } from "./conversations.handler.js";
+import { AppError } from '../../error/index.js';
+import { logger } from '../../logger/index.js';
+import type { PaginatedMessagesResponse } from '../../modules/messages/messages.schema.js';
+import { messagesService } from '../../modules/messages/messages.service.js';
+import {
+  createSocketErrorAck,
+  createSocketSuccessAck,
+  formatZodSocketError,
+  socketHistorySyncSchema,
+  socketSendMessageSchema,
+} from '../schemas.js';
+import type { AppSocket, AppSocketServer, SocketMessageAckData } from '../types.js';
+import { getConversationRoomName } from './conversations.handler.js';
 
 // Registers message-related Socket.IO event handlers for an authenticated client socket.
 export const registerMessageHandler = (_io: AppSocketServer, socket: AppSocket) => {
   socket.on('message:send', async (rawPaload, ack) => {
-    
     // Validation with Zod
-    const parsed = socketSendMessageSchema.safeParse(rawPaload)
-    if(!parsed.success) {
+    const parsed = socketSendMessageSchema.safeParse(rawPaload);
+    if (!parsed.success) {
       if (typeof ack === 'function') {
         ack({
           success: false,
@@ -22,7 +27,7 @@ export const registerMessageHandler = (_io: AppSocketServer, socket: AppSocket) 
       return;
     }
 
-    const {conversationId, content, idempotencyKey } = parsed.data
+    const { conversationId, content, idempotencyKey } = parsed.data;
     const currentUserId = socket.data.user.id;
 
     try {
@@ -45,8 +50,6 @@ export const registerMessageHandler = (_io: AppSocketServer, socket: AppSocket) 
       if (typeof ack === 'function') {
         ack(createSocketSuccessAck<SocketMessageAckData>(result));
       }
-
-      
     } catch (error: unknown) {
       if (error instanceof AppError) {
         if (typeof ack === 'function') {
@@ -59,13 +62,13 @@ export const registerMessageHandler = (_io: AppSocketServer, socket: AppSocket) 
         userId: currentUserId,
         conversationId,
         error: error instanceof Error ? error.message : String(error),
-      })
-      
+      });
+
       if (typeof ack === 'function') {
         ack(createSocketErrorAck('INTERNAL_SERVER_ERROR', 'Internal server error', 500));
       }
     }
-  })
+  });
 
   socket.on('history:sync', async (rawPayload, ack) => {
     // 1. Boundary payload validation with Zod
@@ -115,4 +118,4 @@ export const registerMessageHandler = (_io: AppSocketServer, socket: AppSocket) 
       }
     }
   });
-}
+};

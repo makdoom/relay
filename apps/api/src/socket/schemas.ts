@@ -76,7 +76,7 @@ export const createSocketSuccessAck = <T>(data: T): SocketAck<T> => {
     success: true,
     data,
   };
-}
+};
 
 /**
  * Formats an error Socket.IO acknowledgement response.
@@ -101,7 +101,7 @@ export const createSocketErrorAck = (
     success: false,
     error,
   };
-}
+};
 
 /**
  * Formats Zod validation errors into a standardized SocketErrorPayload.
@@ -118,4 +118,4 @@ export const formatZodSocketError = (error: z.ZodError): SocketErrorPayload => {
     statusCode: 400,
     details: issues,
   };
-}
+};
