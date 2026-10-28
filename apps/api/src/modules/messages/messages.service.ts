@@ -161,4 +161,73 @@ export const messagesService = {
       hasMore,
     };
   },
+
+
+  /**
+   * Synchronizes missed messages for a conversation committed after a given cursor.
+   * Designed for reconnection recovery and forward synchronization.
+   * Returns messages in chronological order (created_at ASC, id ASC) with keyset nextCursor.
+   */
+  async syncMessagesAfterCursor(params: {
+    conversationId: string;
+    currentUserId: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<PaginatedMessagesResponse> {
+    const { conversationId, currentUserId, cursor } = params;
+    const limit = params.limit ?? 50;
+
+    // 1. Verify conversation exists
+    const conversation = await conversationsRepository.findConversationById(conversationId);
+    if (!conversation) {
+      throw new NotFoundError('Conversation not found', 'CONVERSATION_NOT_FOUND');
+    }
+
+    // 2. Fetch requester's membership record
+    const member = await conversationsRepository.findMember(conversationId, currentUserId);
+
+    // 3. Enforce membership authorization check
+    assertCanAccessMessageHistory(conversation, member);
+
+    // 4. Resolve cursor coordinates if provided
+    let cursorId: string | undefined;
+
+    if (cursor) {
+      const cursorMessage = await messagesRepository.findMessageById(cursor);
+      if (!cursorMessage || cursorMessage.conversationId !== conversationId) {
+        throw new NotFoundError(
+          'Cursor message not found in this conversation',
+          'CURSOR_NOT_FOUND'
+        );
+      }
+
+      // If departed member, cursor cannot bypass their departure bound
+      if (member && member.leftAt && cursorMessage.createdAt.getTime() > member.leftAt.getTime()) {
+        throw new NotFoundError(
+          'Cursor message not found in this conversation',
+          'CURSOR_NOT_FOUND'
+        );
+      }
+
+      cursorId = cursorMessage.id;
+    }
+
+    // 5. Query messages committed after cursor
+    const rawMessages = await messagesRepository.listMessagesAfterCursor({
+      conversationId,
+      limit,
+      cursorId,
+      maxCreatedAt: member?.leftAt ?? null,
+    });
+
+    const hasMore = rawMessages.length > limit;
+    const pageMessages = hasMore ? rawMessages.slice(0, limit) : rawMessages;
+    const nextCursor = hasMore ? pageMessages[pageMessages.length - 1].id : null;
+
+    return {
+      messages: pageMessages.map(serializeMessage),
+      nextCursor,
+      hasMore,
+    };
+  },
 };
