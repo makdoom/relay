@@ -1,4 +1,4 @@
-import { and, desc, eq, lt, lte, or, SQL, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, lt, lte, or, SQL, sql } from 'drizzle-orm';
 import { v7 as uuidv7 } from 'uuid';
 import { db } from '../../db/index.js';
 import { conversations, type Message, messages } from '../../db/schema/index.js';
@@ -14,6 +14,14 @@ export interface ListMessagesParams {
   conversationId: string;
   limit: number;
   cursorCreatedAt?: Date;
+  cursorId?: string;
+  maxCreatedAt?: Date | null;
+}
+
+
+export interface ListMessagesAfterCursorParams {
+  conversationId: string;
+  limit: number;
   cursorId?: string;
   maxCreatedAt?: Date | null;
 }
@@ -98,5 +106,45 @@ export const messagesRepository = {
       .where(and(...conditions))
       .orderBy(desc(messages.createdAt), desc(messages.id))
       .limit(limit + 1);
+  },
+
+  /**
+   * Retrieves missed messages for a conversation committed after a given cursor,
+   * ordered chronologically (created_at ASC, id ASC).
+   * Used for reconnection catch-up and forward synchronization.
+   * If no cursor is specified, returns the most recent messages.
+   * Fetches (limit + 1) rows to determine whether further pages exist.
+   */
+  async listMessagesAfterCursor(params: ListMessagesAfterCursorParams): Promise<Message[]> {
+    const { conversationId, limit, cursorId, maxCreatedAt } = params;
+
+    const conditions: SQL[] = [eq(messages.conversationId, conversationId)];
+
+    if (maxCreatedAt) {
+      conditions.push(lte(messages.createdAt, maxCreatedAt));
+    }
+
+    if (cursorId) {
+      conditions.push(
+        sql`(${messages.createdAt}, ${messages.id}) > (SELECT ${messages.createdAt}, ${messages.id} FROM ${messages} WHERE ${messages.id} = ${cursorId})`
+      );
+
+      return await db
+        .select()
+        .from(messages)
+        .where(and(...conditions))
+        .orderBy(asc(messages.createdAt), asc(messages.id))
+        .limit(limit + 1);
+    }
+
+    // Without cursor, fetch the latest messages up to limit + 1, ordered chronologically
+    const recent = await db
+      .select()
+      .from(messages)
+      .where(and(...conditions))
+      .orderBy(desc(messages.createdAt), desc(messages.id))
+      .limit(limit + 1);
+
+    return recent.reverse();
   },
 };
