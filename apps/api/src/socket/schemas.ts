@@ -68,7 +68,6 @@ export const socketHistorySyncSchema = z.object({
 
 export type SocketHistorySyncInput = z.infer<typeof socketHistorySyncSchema>;
 
-
 /**
  * Zod schema for validating on-demand presence query ('presence:get').
  * Allows clients to query current online/offline statuses for a batch of users.
@@ -81,7 +80,6 @@ export const socketPresenceQuerySchema = z.object({
 });
 
 export type SocketPresenceQueryInput = z.infer<typeof socketPresenceQuerySchema>;
-
 
 /**
  * Formats a successful Socket.IO acknowledgement response.

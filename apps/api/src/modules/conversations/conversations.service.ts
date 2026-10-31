@@ -321,7 +321,6 @@ export const conversationsService = {
     };
   },
 
-
   /**
    * Advances a user's read watermark in a conversation monotonically.
    * - Verifies conversation exists.
@@ -397,5 +396,4 @@ export const conversationsService = {
       readAt: member.lastReadAt ? member.lastReadAt.toISOString() : readAt.toISOString(),
     };
   },
-
 };

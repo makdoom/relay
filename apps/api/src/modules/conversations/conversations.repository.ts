@@ -370,8 +370,6 @@ export const conversationsRepository = {
     return updated;
   },
 
-
-
   /**
    * Monotonically advances a member's read watermark in conversation_members.
    * Only updates the row if last_read_message_id is null OR the target message

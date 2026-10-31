@@ -185,7 +185,7 @@ export interface ClientToServerEvents {
     ack: (response: SocketAck<PaginatedMessagesResponse>) => void
   ) => void;
 
-   /**
+  /**
    * Queries the current online/offline presence status for a list of users.
    */
   'presence:get': (

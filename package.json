@@ -5,7 +5,9 @@
   "description": "Relay — Production-minded Real-Time Messaging Platform Monorepo",
   "scripts": {
     "dev:api": "pnpm --filter @relay/api dev",
+    "dev:web": "pnpm --filter @relay/web dev",
     "build:api": "pnpm --filter @relay/api build",
+    "build:web": "pnpm --filter @relay/web build",
     "start:api": "pnpm --filter @relay/api start",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
@@ -19,7 +21,7 @@
     "format:check": "biome format .",
     "lint": "biome lint .",
     "check": "biome check .",
-    "check:write": "biome check --write .",
+    "check:write": "biome check --write --unsafe .",
     "typecheck": "pnpm -r --if-present run typecheck"
   },
   "keywords": [],

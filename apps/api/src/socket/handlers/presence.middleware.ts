@@ -2,8 +2,8 @@ import { logger } from '../../logger/index.js';
 import {
   createSocketSuccessAck,
   formatZodSocketError,
-  socketPresenceQuerySchema,
   type SocketPresenceQueryInput,
+  socketPresenceQuerySchema,
 } from '../schemas.js';
 import type {
   AppSocket,
