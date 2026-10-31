@@ -7,6 +7,7 @@ import { registerMessageHandler } from './handlers/messages.handler.js';
 import { socketAuthMiddleware } from './middleware/auth.js';
 import type { AppSocketServer } from './types.js';
 import { registerTypingHandlers } from './handlers/typing.handler.js';
+import { registerReadHandlers } from './handlers/read.handler.js';
 
 export * from './schemas.js';
 export * from './types.js';
@@ -36,6 +37,7 @@ export const createSocketServer = (httpServer: HttpServer): AppSocketServer => {
     registerMessageHandler(io, socket);
     registerConversationHandler(io, socket);
     registerTypingHandlers(io, socket)
+    registerReadHandlers(io, socket);
 
     socket.on('disconnect', (reason) => {
       logger.info('❌ Socket client disconnected', { socketId: socket.id, userId, reason });

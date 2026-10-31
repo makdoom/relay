@@ -6,6 +6,7 @@ import {
   conversationMembers,
   conversations,
   directConversations,
+  messages,
   users,
 } from '../../db/schema/index.js';
 
@@ -364,6 +365,41 @@ export const conversationsRepository = {
         updatedAt: sql`now()`,
       })
       .where(and(eq(conversations.id, conversationId), eq(conversations.type, 'group')))
+      .returning();
+
+    return updated;
+  },
+
+
+
+  /**
+   * Monotonically advances a member's read watermark in conversation_members.
+   * Only updates the row if last_read_message_id is null OR the target message
+   * is chronologically newer than the existing last_read_message_id.
+   */
+  async advanceReadWatermark(params: {
+    conversationId: string;
+    userId: string;
+    messageId: string;
+    readAt: Date;
+  }): Promise<ConversationMember | undefined> {
+    const [updated] = await db
+      .update(conversationMembers)
+      .set({
+        lastReadMessageId: params.messageId,
+        lastReadAt: params.readAt,
+      })
+      .where(
+        and(
+          eq(conversationMembers.conversationId, params.conversationId),
+          eq(conversationMembers.userId, params.userId),
+          sql`(${conversationMembers.lastReadMessageId} IS NULL OR (
+            SELECT (created_at, id) FROM ${messages} WHERE id = ${params.messageId}
+          ) > (
+            SELECT (created_at, id) FROM ${messages} WHERE id = ${conversationMembers.lastReadMessageId}
+          ))`
+        )
+      )
       .returning();
 
     return updated;
