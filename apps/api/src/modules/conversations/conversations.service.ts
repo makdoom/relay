@@ -4,6 +4,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from '../../error/index.js';
+import { messagesRepository } from '../messages/messages.repository.js';
 import { usersService } from '../users/users.service.js';
 import {
   assertCanLeaveConversation,
@@ -319,4 +320,82 @@ export const conversationsService = {
       })),
     };
   },
+
+
+  /**
+   * Advances a user's read watermark in a conversation monotonically.
+   * - Verifies conversation exists.
+   * - Verifies caller is an active member.
+   * - Verifies message exists and belongs to the conversation.
+   * - Enforces monotonic advancement in DB.
+   */
+  async updateReadWatermark(params: {
+    conversationId: string;
+    userId: string;
+    lastReadMessageId: string;
+  }): Promise<{
+    updated: boolean;
+    lastReadMessageId: string;
+    readAt: string;
+  }> {
+    const { conversationId, userId, lastReadMessageId } = params;
+
+    // 1. Verify conversation exists
+    const conversation = await conversationsRepository.findConversationById(conversationId);
+    if (!conversation) {
+      throw new NotFoundError('Conversation not found', 'CONVERSATION_NOT_FOUND');
+    }
+
+    // 2. Fetch membership
+    const member = await conversationsRepository.findMember(conversationId, userId);
+    if (!member) {
+      throw new ForbiddenError('You are not a member of this conversation', 'NOT_A_MEMBER');
+    }
+    if (member.leftAt !== null) {
+      throw new ForbiddenError(
+        'Cannot update read state in a conversation you have left',
+        'CANNOT_SEND_TO_LEFT_CONVERSATION'
+      );
+    }
+
+    // 3. Verify message exists and belongs to this conversation
+    const message = await messagesRepository.findMessageById(lastReadMessageId);
+    if (!message || message.conversationId !== conversationId) {
+      throw new NotFoundError('Message not found in this conversation', 'MESSAGE_NOT_FOUND');
+    }
+
+    // 4. Fast path: if already at this watermark
+    if (member.lastReadMessageId === lastReadMessageId) {
+      return {
+        updated: false,
+        lastReadMessageId,
+        readAt: member.lastReadAt ? member.lastReadAt.toISOString() : new Date().toISOString(),
+      };
+    }
+
+    // 5. Attempt monotonic update in database
+    const readAt = new Date();
+    const updated = await conversationsRepository.advanceReadWatermark({
+      conversationId,
+      userId,
+      messageId: lastReadMessageId,
+      readAt,
+    });
+
+    if (updated) {
+      return {
+        updated: true,
+        lastReadMessageId,
+        readAt: updated.lastReadAt ? updated.lastReadAt.toISOString() : readAt.toISOString(),
+      };
+    }
+
+    // If update returned nothing, target message was older than current watermark (rewind attempt)
+    return {
+      updated: false,
+      lastReadMessageId: member.lastReadMessageId ?? lastReadMessageId,
+      readAt: member.lastReadAt ? member.lastReadAt.toISOString() : readAt.toISOString(),
+    };
+  },
+
 };

@@ -78,6 +78,7 @@ export const conversations = pgTable(
 export type Conversation = typeof conversations.$inferSelect;
 export type NewConversation = typeof conversations.$inferInsert;
 
+
 export const conversationMembers = pgTable(
   'conversation_members',
   {
@@ -90,6 +91,10 @@ export const conversationMembers = pgTable(
     role: varchar('role', { length: 20 }).default('member').notNull(),
     joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
     leftAt: timestamp('left_at', { withTimezone: true }),
+    lastReadMessageId: uuid('last_read_message_id').references(() => messages.id, {
+      onDelete: 'set null',
+    }),
+    lastReadAt: timestamp('last_read_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },

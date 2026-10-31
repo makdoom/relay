@@ -22,6 +22,13 @@
       "when": 1793028954423,
       "tag": "0002_message_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793446097737,
+      "tag": "0003_read_state",
+      "breakpoints": true
     }
   ]
 }

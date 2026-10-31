@@ -1,0 +1,3 @@
+ALTER TABLE "conversation_members" ADD COLUMN "last_read_message_id" uuid;--> statement-breakpoint
+ALTER TABLE "conversation_members" ADD COLUMN "last_read_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "conversation_members" ADD CONSTRAINT "conversation_members_last_read_message_id_messages_id_fk" FOREIGN KEY ("last_read_message_id") REFERENCES "public"."messages"("id") ON DELETE set null ON UPDATE no action;
