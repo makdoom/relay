@@ -1,5 +1,7 @@
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express, { type Application } from 'express';
+import { config } from './config/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
@@ -7,9 +9,6 @@ import { authRouter } from './modules/auth/auth.route.js';
 import { conversationsRouter } from './modules/conversations/conversations.route.js';
 import { healthRouter } from './modules/health/health.route.js';
 import { userRouter } from './modules/users/users.route.js';
-import cors from 'cors'
-import { config } from './config/index.js';
-
 
 const createApp = (): Application => {
   const app = express();
@@ -21,7 +20,7 @@ const createApp = (): Application => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
-  app.use(cors({ origin: config.cors.origin, credentials: true }))
+  app.use(cors({ origin: config.cors.origin, credentials: true }));
 
   // Routes
   app.use('/health', healthRouter);

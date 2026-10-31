@@ -1,0 +1,5 @@
+{
+  "root": false,
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "extends": ["@relay/biome-config/base"]
+}

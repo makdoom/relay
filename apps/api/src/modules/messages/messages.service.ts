@@ -138,7 +138,7 @@ export const messagesService = {
       }
 
       // If departed member, cursor cannot bypass their departure bound
-      if (member && member.leftAt && cursorMessage.createdAt.getTime() > member.leftAt.getTime()) {
+      if (member?.leftAt && cursorMessage.createdAt.getTime() > member.leftAt.getTime()) {
         throw new NotFoundError(
           'Cursor message not found in this conversation',
           'CURSOR_NOT_FOUND'

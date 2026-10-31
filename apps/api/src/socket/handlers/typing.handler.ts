@@ -1,9 +1,9 @@
-import { AppError } from "../../error/index.js";
-import { logger } from "../../logger/index.js";
-import { conversationsRepository } from "../../modules/conversations/conversations.repository.js";
-import { SocketTypingInput, socketTypingSchema } from "../schemas.js";
-import { AppSocket, AppSocketServer } from "../types.js";
-import { getConversationRoomName } from "./conversations.handler.js";
+import { AppError } from '../../error/index.js';
+import { logger } from '../../logger/index.js';
+import { conversationsRepository } from '../../modules/conversations/conversations.repository.js';
+import { type SocketTypingInput, socketTypingSchema } from '../schemas.js';
+import type { AppSocket, AppSocketServer } from '../types.js';
+import { getConversationRoomName } from './conversations.handler.js';
 
 export const DEFAULT_TYPING_TIMEOUT_MS = 3000;
 
@@ -22,20 +22,18 @@ export const clearAllTypingTimers = (): void => {
     clearTimeout(timer);
   }
   activeTypingTimers.clear();
-}
-
+};
 
 /**
  * Returns the active timer count (useful for test assertions).
  */
 export const getActiveTypingTimersCount = (): number => {
   return activeTypingTimers.size;
-}
+};
 
 export interface RegisterTypingHandlersOptions {
   timeoutMs?: number;
 }
-
 
 /**
  * Registers ephemeral typing indicator event handlers ('typing:start', 'typing:stop')
@@ -78,9 +76,9 @@ export const registerTypingHandlers = (
     }
 
     return true;
-  }
+  };
 
-   // Handle typing:start
+  // Handle typing:start
   socket.on('typing:start', async (rawPayload: SocketTypingInput) => {
     // 1. Validate payload structure
     const parsed = socketTypingSchema.safeParse(rawPayload);
@@ -174,7 +172,7 @@ export const registerTypingHandlers = (
     }
   });
 
-   // Handle typing:stop
+  // Handle typing:stop
   socket.on('typing:stop', async (rawPayload: SocketTypingInput) => {
     // 1. Validate payload structure
     const parsed = socketTypingSchema.safeParse(rawPayload);
@@ -270,5 +268,4 @@ export const registerTypingHandlers = (
 
     socketTypingConvs.clear();
   });
-
-}
+};

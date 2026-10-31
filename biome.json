@@ -24,7 +24,8 @@
       "!**/pnpm-lock.yaml",
       "!**/.agents/",
       "!**/docs/",
-      "!**/*.md"
+      "!**/*.md",
+      "!**/drizzle/**"
     ]
   },
   "linter": { "enabled": true, "rules": { "preset": "recommended" } },
@@ -45,6 +46,11 @@
     "formatter": {
       "indentScriptAndStyle": false,
       "selfCloseVoidElements": "always"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "assist": {
