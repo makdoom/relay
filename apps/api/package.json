@@ -8,6 +8,7 @@
     "build": "tsc",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "db:migrate:prod": "node dist/db/migrate.js",
     "db:studio": "drizzle-kit studio",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"
@@ -15,6 +16,7 @@
   "dependencies": {
     "argon2": "^0.45.1",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^18.0.8",
     "drizzle-orm": "^0.45.4",
     "express": "^4.21.2",
@@ -26,6 +28,7 @@
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.13.4",

@@ -7,6 +7,9 @@ import { authRouter } from './modules/auth/auth.route.js';
 import { conversationsRouter } from './modules/conversations/conversations.route.js';
 import { healthRouter } from './modules/health/health.route.js';
 import { userRouter } from './modules/users/users.route.js';
+import cors from 'cors'
+import { config } from './config/index.js';
+
 
 const createApp = (): Application => {
   const app = express();
@@ -18,6 +21,7 @@ const createApp = (): Application => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
+  app.use(cors({ origin: config.cors.origin, credentials: true }))
 
   // Routes
   app.use('/health', healthRouter);

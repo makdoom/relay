@@ -59,7 +59,7 @@ export const getCookieOptions = (maxAgeMs: number) => {
   return {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: 'strict' as const,
+    sameSite: (config.env === 'production' ? 'none' : 'lax') as 'none' | 'lax',
     path: '/',
     maxAge: maxAgeMs,
   };
@@ -70,7 +70,7 @@ export const getClearCookieOptions = () => {
   return {
     httpOnly: true,
     secure: config.env === 'production',
-    sameSite: 'strict' as const,
+    sameSite: (config.env === 'production' ? 'none' : 'lax') as 'none' | 'lax',
     path: '/',
   };
 };

@@ -12,7 +12,7 @@ const envSchema = z
           'DATABASE_URL must be a valid PostgreSQL connection string starting with postgresql:// or postgres://',
       })
       .optional(),
-    JWT_ACCESS_SECRETS: z
+    JWT_ACCESS_SECRET: z
       .string()
       .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters')
       .default('dev-jwt-access-secret-minimum-32-chars-long'),
@@ -39,8 +39,8 @@ const envSchema = z
 
       // JWT_ACCESS_SECRETS validation
       if (
-        !data.JWT_ACCESS_SECRETS ||
-        data.JWT_ACCESS_SECRETS === 'dev-jwt-access-secret-minimum-32-chars-long'
+        !data.JWT_ACCESS_SECRET ||
+        data.JWT_ACCESS_SECRET === 'dev-jwt-access-secret-minimum-32-chars-long'
       ) {
         ctx.addIssue({
           code: 'custom',
@@ -79,7 +79,7 @@ const validateConfig = (rawEnv: Record<string, string | undefined> = process.env
     PORT,
     NODE_ENV,
     DATABASE_URL,
-    JWT_ACCESS_SECRETS,
+    JWT_ACCESS_SECRET,
     JWT_ACCESS_EXPIRATION,
     REFRESH_TOKEN_EXPIRATION_DAYS,
     CORS_ORIGIN,
@@ -99,7 +99,7 @@ const validateConfig = (rawEnv: Record<string, string | undefined> = process.env
       origin: CORS_ORIGIN,
     },
     jwt: {
-      accessSecret: JWT_ACCESS_SECRETS,
+      accessSecret: JWT_ACCESS_SECRET,
       accessExpiration: JWT_ACCESS_EXPIRATION,
       refreshTokenExpirationDays: REFRESH_TOKEN_EXPIRATION_DAYS,
     },
