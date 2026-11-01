@@ -4,13 +4,7 @@
   "linter": {
     "rules": {
       "nursery": {
-        "useSortedClasses": {
-          "level": "warn",
-          "options": {
-            "attributes": ["classList"],
-            "functions": ["cn", "cva", "clsx"]
-          }
-        }
+        "useSortedClasses": "off"
       },
       "correctness": {
         "useHookAtTopLevel": "error",
