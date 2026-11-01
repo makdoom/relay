@@ -1,10 +1,10 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
   "extends": ["./base.json"],
   "linter": {
     "rules": {
       "nursery": {
-        "useSortedClasses": "off"
+        "useTailwindSortedClasses": "off"
       },
       "correctness": {
         "useHookAtTopLevel": "error",
