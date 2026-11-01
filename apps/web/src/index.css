@@ -6,6 +6,132 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+	--color-background: var(--bg-app);
+	--color-header: var(--bg-header);
+	--color-sidebar: var(--bg-sidebar);
+	--color-card: var(--bg-card);
+	--color-card-hover: var(--bg-card-hover);
+	--color-card-active: var(--bg-active);
+	--color-input: var(--bg-input);
+	--color-border: var(--border-main);
+	--color-border-subtle: var(--border-subtle);
+	--color-border-active: var(--border-active);
+	--color-foreground: var(--fg-primary);
+	--color-foreground-secondary: var(--fg-secondary);
+	--color-foreground-muted: var(--fg-muted);
+	--color-primary: var(--btn-primary-bg);
+	--color-primary-foreground: var(--btn-primary-fg);
+	--color-bubble-in: var(--bubble-in-bg);
+	--color-bubble-in-border: var(--bubble-in-border);
+	--color-bubble-in-foreground: var(--bubble-in-fg);
+	--color-bubble-out: var(--bubble-out-bg);
+	--color-bubble-out-border: var(--bubble-out-border);
+	--color-bubble-out-foreground: var(--bubble-out-fg);
+	--color-accent-online: var(--accent-online);
+	--color-accent-read: var(--accent-read);
+	--color-accent-pending: var(--accent-pending);
+	--color-accent-error: var(--accent-error);
+	--color-kbd-bg: var(--kbd-bg);
+	--color-kbd-border: var(--kbd-border);
+	--font-sans: "Geist", system-ui, -apple-system, sans-serif;
+	--font-mono: "Geist Mono", monospace;
+}
+
+@layer base {
+	/* Default: Linear Dark (Obsidian) */
+	:root {
+		--bg-app: #08090c;
+		--bg-header: #0d0e12;
+		--bg-sidebar: #0d0e12;
+		--bg-chat: #08090c;
+		--bg-card: #13151b;
+		--bg-card-hover: #181a22;
+		--bg-input: #12141a;
+		--bg-active: #1c1e27;
+
+		--border-main: rgba(255, 255, 255, 0.08);
+		--border-subtle: rgba(255, 255, 255, 0.05);
+		--border-active: rgba(255, 255, 255, 0.2);
+
+		--fg-primary: #f3f4f6;
+		--fg-secondary: #9ca3af;
+		--fg-muted: #6b7280;
+
+		--btn-primary-bg: #ffffff;
+		--btn-primary-fg: #000000;
+		--btn-primary-hover: #e5e7eb;
+
+		--bubble-in-bg: #13151b;
+		--bubble-in-border: rgba(255, 255, 255, 0.07);
+		--bubble-in-fg: #f3f4f6;
+
+		--bubble-out-bg: #1f222d;
+		--bubble-out-border: rgba(255, 255, 255, 0.12);
+		--bubble-out-fg: #ffffff;
+
+		--accent-online: #10b981;
+		--accent-read: #38bdf8;
+		--accent-pending: #f59e0b;
+		--accent-error: #ef4444;
+		--kbd-bg: #181a22;
+		--kbd-border: rgba(255, 255, 255, 0.15);
+	}
+
+	/* Linear Light (Paper Minimal) */
+	.light {
+		--bg-app: #ffffff;
+		--bg-header: #fafafa;
+		--bg-sidebar: #f4f4f5;
+		--bg-chat: #ffffff;
+		--bg-card: #ffffff;
+		--bg-card-hover: #f4f4f5;
+		--bg-input: #ffffff;
+		--bg-active: #e4e4e7;
+
+		--border-main: #e4e4e7;
+		--border-subtle: #f4f4f5;
+		--border-active: #a1a1aa;
+
+		--fg-primary: #09090b;
+		--fg-secondary: #52525b;
+		--fg-muted: #71717a;
+
+		--btn-primary-bg: #09090b;
+		--btn-primary-fg: #ffffff;
+		--btn-primary-hover: #27272a;
+
+		--bubble-in-bg: #f4f4f5;
+		--bubble-in-border: #e4e4e7;
+		--bubble-in-fg: #09090b;
+
+		--bubble-out-bg: #18181b;
+		--bubble-out-border: #09090b;
+		--bubble-out-fg: #ffffff;
+
+		--accent-online: #10b981;
+		--accent-read: #2563eb;
+		--accent-pending: #d97706;
+		--accent-error: #dc2626;
+		--kbd-bg: #e4e4e7;
+		--kbd-border: #d4d4d8;
+	}
+}
+
+body {
+	background-color: var(--bg-app);
+	color: var(--fg-primary);
+	font-family: var(--font-sans);
+	overflow: hidden;
+}
+
+/* @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
 	--font-heading: var(--font-sans);
 	--font-sans: "Geist Variable", sans-serif;
 	--color-sidebar-ring: var(--sidebar-ring);
@@ -131,4 +257,4 @@
 	html {
 		@apply font-sans;
 	}
-}
+} */
