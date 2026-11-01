@@ -5,3 +5,4 @@ packages:
 allowBuilds:
   argon2: true
   esbuild: true
+  msw: true
