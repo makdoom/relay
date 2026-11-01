@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/password-input';
 
 const formSchema = z.object({
-  username: z.string().min(2, 'Username is required'),
+  email: z.email('Please enter a valid email').min(1, 'Email is required'),
   password: z.string().min(8, 'Password must be at least 8 characters long'),
 });
 
@@ -21,7 +21,7 @@ const Login = () => {
   const form = useForm({
     defaultValues: {
       password: '',
-      username: '',
+      email: '',
     },
     resolver: zodResolver(formSchema),
   });
@@ -47,16 +47,14 @@ const Login = () => {
           <FieldGroup className="gap-5">
             <Controller
               control={form.control}
-              name="username"
+              name="email"
               render={({ field, fieldState }) => (
                 <Field className="gap-1.5" invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="username-or-email" className="text-xs">
-                    Email
-                  </FieldLabel>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
                   <Input
                     {...field}
                     className="h-9"
-                    id="username-or-email"
+                    id="email"
                     placeholder="john@mail.com"
                     autoFocus
                   />
@@ -69,9 +67,7 @@ const Login = () => {
               name="password"
               render={({ field, fieldState }) => (
                 <Field className="gap-1.5" invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="password" className="text-xs">
-                    Password
-                  </FieldLabel>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
                   <PasswordInput size="lg">
                     <PasswordInputGroup>
                       <PasswordInputInput id="password" {...field} placeholder="*********" />
@@ -89,7 +85,7 @@ const Login = () => {
         </form>
 
         <div className="w-full">
-          <p className="text-center text-muted-foreground text-xs">
+          <p className="text-center text-muted-foreground text-sm">
             Don't have an account ?{' '}
             <a className="hover:underline text-foreground" href="/register">
               Create One
