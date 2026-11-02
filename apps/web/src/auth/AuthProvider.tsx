@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getCurrentUser, loginUser, logoutUser } from '@/api/auth.api';
+import { getCurrentUser, loginUser, logoutUser, registerUser } from '@/api/auth.api';
 import { ApiError } from '@/lib/error';
 import type { LoginInput, RegisterInput, User } from '@/types/auth';
 import { AuthContext, type AuthContextValue } from './AuthContext';
@@ -53,15 +53,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const register = async (data: RegisterInput) => {
     setError(null);
     try {
-      // 1. Create account
-      await register(data);
-      // 2. Automatically log in to establish secure session cookies
-      const loggedInUser = await loginUser({
-        identifier: data.email,
-        password: data.password,
-      });
+      const loggedInUser = await registerUser(data);
       setUser(loggedInUser);
     } catch (err) {
+      console.log(err);
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
