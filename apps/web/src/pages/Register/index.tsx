@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 import z from 'zod';
 import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,9 @@ import {
   PasswordInputInput,
   PasswordInputTrigger,
 } from '@/components/ui/password-input';
+import { toast } from '@/components/ui/sonner';
+import { Spinner } from '@/components/ui/spinner';
+import { useAuth } from '@/hooks/useAuth';
 
 const formSchema = z.object({
   fullName: z.string().min(2, 'Name is required'),
@@ -20,6 +24,8 @@ const formSchema = z.object({
 });
 
 const Register = () => {
+  const { register } = useAuth();
+  const navigate = useNavigate();
   const form = useForm({
     defaultValues: {
       fullName: '',
@@ -30,8 +36,34 @@ const Register = () => {
     resolver: zodResolver(formSchema),
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const isSubmitting = form.formState.isSubmitting;
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { fullName, username, email, password } = values;
+
+    try {
+      if (!fullName) return toast.error('Name is required');
+      if (!username) return toast.error('Username is required');
+      if (!email) return toast.error('Email is required');
+      if (!password) return toast.error('Password is required');
+
+      await register({
+        username: username.trim(),
+        email: email.trim(),
+        password: password.trim(),
+        name: fullName.trim(),
+      });
+
+      navigate('/chat', { replace: true });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message || 'Unable to sign in, Please check your credentials.'
+          : ''
+      );
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   };
   return (
     <div className="flex items-center flex-col justify-center h-screen w-full ">
@@ -61,6 +93,7 @@ const Register = () => {
                     id="full-name"
                     placeholder="John Doe"
                     autoFocus
+                    disabled={isSubmitting}
                   />
                   <FieldError className="text-xs">{fieldState.error?.message}</FieldError>
                 </Field>
@@ -72,7 +105,13 @@ const Register = () => {
               render={({ field, fieldState }) => (
                 <Field className="gap-1.5" invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="username">Username</FieldLabel>
-                  <Input {...field} className="h-9" id="username" placeholder="@john" />
+                  <Input
+                    {...field}
+                    className="h-9"
+                    id="username"
+                    placeholder="@john"
+                    disabled={isSubmitting}
+                  />
                   <FieldError className="text-xs">{fieldState.error?.message}</FieldError>
                 </Field>
               )}
@@ -83,7 +122,13 @@ const Register = () => {
               render={({ field, fieldState }) => (
                 <Field className="gap-1.5" invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input {...field} className="h-9" id="email" placeholder="john@mail.com" />
+                  <Input
+                    {...field}
+                    className="h-9"
+                    id="email"
+                    placeholder="john@mail.com"
+                    disabled={isSubmitting}
+                  />
                   <FieldError className="text-xs">{fieldState.error?.message}</FieldError>
                 </Field>
               )}
@@ -96,7 +141,12 @@ const Register = () => {
                   <FieldLabel htmlFor="password">Password</FieldLabel>
                   <PasswordInput size="lg">
                     <PasswordInputGroup>
-                      <PasswordInputInput id="password" {...field} placeholder="*********" />
+                      <PasswordInputInput
+                        id="password"
+                        {...field}
+                        placeholder="*********"
+                        disabled={isSubmitting}
+                      />
                       <PasswordInputTrigger />
                     </PasswordInputGroup>
                   </PasswordInput>
@@ -106,6 +156,7 @@ const Register = () => {
             />
             <Button className="h-9 w-full font-medium text-sm" type="submit">
               Create Account
+              {isSubmitting && <Spinner />}
             </Button>
           </FieldGroup>
         </form>
