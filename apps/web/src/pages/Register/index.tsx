@@ -54,7 +54,7 @@ const Register = () => {
         name: fullName.trim(),
       });
 
-      navigate('/chat', { replace: true });
+      navigate('/chats', { replace: true });
     } catch (error) {
       toast.error(
         error instanceof Error

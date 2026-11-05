@@ -1,6 +1,6 @@
 import { BrowserRouter } from 'react-router';
-import { AuthProvider } from './auth/AuthProvider';
 import { Toaster } from './components/ui/sonner';
+import { AuthProvider } from './providers/AuthProvider';
 import AppRoutes from './routes/AppRoutes';
 
 export function App() {
