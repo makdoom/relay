@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { getCurrentUser, loginUser, logoutUser, registerUser } from '@/api/auth.api';
 import { ApiError } from '@/lib/error';
 import type { LoginInput, RegisterInput, User } from '@/types/auth';
-import { AuthContext, type AuthContextValue } from './AuthContext';
+import { AuthContext, type AuthContextValue } from '../context/AuthContext';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
