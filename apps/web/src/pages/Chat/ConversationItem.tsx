@@ -1,8 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatTimestamp } from '@/lib/utils';
+import { useConversation } from '@/hooks/useConversation';
+import { cn, formatTimestamp } from '@/lib/utils';
 import type { ConversationListItem } from '@/types/conversation';
 
-const ConversationItem = ({ conversation }: { conversation: ConversationListItem }) => {
+type ConversationItemType = {
+  conversation: ConversationListItem;
+};
+
+const ConversationItem = ({ conversation }: ConversationItemType) => {
+  const { selectedConversationId, setSelectedConversationId } = useConversation();
+  const isSelected = conversation.id === selectedConversationId;
+
   if (conversation.type === 'direct') {
     const initials = conversation.recipient.name
       ? conversation.recipient.name
@@ -13,7 +21,16 @@ const ConversationItem = ({ conversation }: { conversation: ConversationListItem
           .toUpperCase()
       : conversation.recipient.username.slice(0, 2).toUpperCase();
     return (
-      <div className="w-full text-left p-2.5 flex items-center gap-3 cursor-pointer group hover:bg-secondary/50 border-b">
+      <button
+        type="button"
+        onClick={() => {
+          setSelectedConversationId(conversation.id);
+        }}
+        className={cn(
+          `w-full text-left p-2.5 py-3 flex items-center gap-3 cursor-pointer group hover:bg-secondary/50 border-b outline-none`,
+          isSelected ? `bg-secondary` : 'bg-transparent'
+        )}
+      >
         <Avatar className="relative">
           <AvatarImage src="https://github.com/shadcn.png" />
           <AvatarFallback>{initials}</AvatarFallback>
@@ -27,15 +44,24 @@ const ConversationItem = ({ conversation }: { conversation: ConversationListItem
               {formatTimestamp(conversation.updatedAt)}
             </span>
           </div>
-          <div className="text-[11px] font-mono text-zinc-400 truncate mt-0.5">
+          <div className="text-xs text-muted-foreground truncate mt-0.5">
             @{conversation.recipient.username}
           </div>
         </div>
-      </div>
+      </button>
     );
   }
   return (
-    <div className="w-full text-left p-2.5 flex items-center gap-3 cursor-pointer group hover:bg-secondary/50 border-b">
+    <button
+      type="button"
+      onClick={() => {
+        setSelectedConversationId(conversation.id);
+      }}
+      className={cn(
+        `w-full text-left p-2.5 py-3 flex items-center gap-3 cursor-pointer group hover:bg-secondary/50 border-b`,
+        isSelected ? `bg-secondary` : 'bg-transparent'
+      )}
+    >
       <Avatar className="relative">
         <AvatarImage src="https://github.com/shadcn.png" />
         <AvatarFallback>#</AvatarFallback>
@@ -49,9 +75,9 @@ const ConversationItem = ({ conversation }: { conversation: ConversationListItem
             {formatTimestamp(conversation.updatedAt)}
           </span>
         </div>
-        <div className="text-[11px] text-zinc-400 truncate mt-0.5">@{conversation.title}</div>
+        <div className="text-xs text-muted-foreground truncate mt-0.5">@{conversation.title}</div>
       </div>
-    </div>
+    </button>
   );
 };
 
