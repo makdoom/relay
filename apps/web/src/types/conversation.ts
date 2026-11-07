@@ -2,6 +2,8 @@ import type { UserProfile } from './user';
 
 export type ConversationType = 'direct' | 'group';
 
+export type ConversationFilter = 'all' | 'direct' | 'group';
+
 export type DirectConversationListItem = {
   id: string;
   type: 'direct';
@@ -23,4 +25,24 @@ export type ConversationListItem = DirectConversationListItem | GroupConversatio
 
 export interface ListConversationsResponse {
   conversations: ConversationListItem[];
+}
+
+export interface ConversationRecord {
+  id: string;
+  type: ConversationType;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListConversationsResponse {
+  conversations: ConversationListItem[];
+}
+
+export interface DirectConversationResponse {
+  conversation: ConversationRecord;
+}
+
+export interface CreateDirectConversationInput {
+  recipientId: string;
 }

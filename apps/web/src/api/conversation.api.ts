@@ -1,4 +1,10 @@
-import type { ConversationListItem, ListConversationsResponse } from '@/types/conversation';
+import type {
+  ConversationListItem,
+  ConversationRecord,
+  CreateDirectConversationInput,
+  DirectConversationResponse,
+  ListConversationsResponse,
+} from '@/types/conversation';
 import apiClient from './client';
 
 export async function listConversations(limit?: number): Promise<ConversationListItem[]> {
@@ -6,4 +12,17 @@ export async function listConversations(limit?: number): Promise<ConversationLis
     params: limit ? { limit } : undefined,
   });
   return response.data.conversations;
+}
+
+/**
+ * Open or create a direct conversation with a recipient user.
+ * Idempotently resolves to the canonical conversation record (ADR-004).
+ */
+export async function createOrGetDirectConversation(
+  input: CreateDirectConversationInput
+): Promise<ConversationRecord> {
+  const response = await apiClient.post<DirectConversationResponse>('/conversations/direct', {
+    recipientId: input.recipientId,
+  });
+  return response.data.conversation;
 }

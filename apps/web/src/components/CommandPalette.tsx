@@ -68,7 +68,7 @@ const CommandPalette = () => {
   return (
     <div className="flex w-full flex-col gap-3">
       <Button
-        className="justify-between text-muted-foreground"
+        className="justify-between text-muted-foreground h-8"
         onClick={handleOpen}
         variant="outline"
       >

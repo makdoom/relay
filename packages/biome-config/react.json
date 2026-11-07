@@ -8,7 +8,18 @@
       },
       "correctness": {
         "useHookAtTopLevel": "error",
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "warn",
+        "noUnusedImports": {
+          "level": "error",
+          "fix": "safe"
+        }
+      }
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
       }
     }
   },

@@ -2,8 +2,8 @@
   "editor.defaultFormatter": "biomejs.biome",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "explicit",
-    "source.fixAll.biome": "explicit"
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
   },
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
@@ -21,7 +21,7 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[css]": {
     "editor.defaultFormatter": "biomejs.biome"
