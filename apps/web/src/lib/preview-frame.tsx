@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { createContext, type ReactNode, useContext } from "react";
+import { createContext, type ReactNode, useContext } from 'react';
 
 const PreviewFrameContext = createContext(false);
 
