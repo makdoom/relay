@@ -28,12 +28,12 @@ const CommandPalette = () => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
-        setIsUserSearchOpen(!isUserSearchOpen);
+        setIsUserSearchOpen((previous) => !previous);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isUserSearchOpen, setIsUserSearchOpen]);
+  }, [setIsUserSearchOpen]);
 
   const handleOpen = () => {
     setQuery('');
@@ -102,7 +102,7 @@ const CommandPalette = () => {
             value={query}
             onValueChange={(value) => setQuery(value)}
           />
-          <CommandList>
+          <CommandList className="py-2">
             {/* Initial State (Empty Query) */}
             {!isSearching && !query.trim() && (
               <div className="flex flex-col items-center justify-center py-10 text-center px-4">
@@ -137,10 +137,7 @@ const CommandPalette = () => {
             )}
 
             {results.length > 0 && (
-              <CommandGroup
-                heading={`People (${results.length})`}
-                className="py-4 min-h-42 max-h-90"
-              >
+              <CommandGroup heading={`People (${results.length})`}>
                 {results.map((user) => {
                   const isCurrentPending = isStartingChat === user.id;
 

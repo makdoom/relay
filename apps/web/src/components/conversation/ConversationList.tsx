@@ -23,7 +23,7 @@ const ConversationList = ({ type }: { type: ConversationFilter }) => {
   }
 
   return (
-    <div className="flex flex-col gap-2 h-full overflow-y-auto">
+    <div className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto">
       {filteredConversations.map((conversation) => (
         <ConversationItem key={conversation.id} conversation={conversation} />
       ))}

@@ -8,16 +8,15 @@ import EmptyConversation from './EmptyConversation';
 import ErrorConversation from './ErrorConversation';
 
 const ConversationSidebar = () => {
-  const { conversations, filteredConversations, isLoading, error } = useConversation();
+  const { filteredConversations, isLoading, error, setIsUserSearchOpen } = useConversation();
 
-  console.log(conversations);
   return (
     <div className="w-80 border-r flex flex-col shrink-0 select-none">
       <div className="h-12 flex items-center justify-between px-2 border-b">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-muted-foreground">Chats</span>
         </div>
-        <Button variant="secondary">
+        <Button variant="secondary" onClick={() => setIsUserSearchOpen(true)}>
           <PlusIcon />
           New
         </Button>
