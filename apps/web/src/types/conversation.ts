@@ -2,7 +2,7 @@ import type { UserProfile } from './user';
 
 export type ConversationType = 'direct' | 'group';
 
-export type ConversationFilter = 'all' | 'direct' | 'group';
+export type ConversationFilter = 'all' | 'direct' | 'group' | 'unread';
 
 export type DirectConversationListItem = {
   id: string;

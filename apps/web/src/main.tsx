@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 
 import './index.css';
-import { ThemeProvider } from '@/components/theme-provider.tsx';
+import { ThemeProvider } from '@/providers/ThemeProvider.tsx';
 import App from './App.tsx';
 
 const rootElement = document.getElementById('root');
