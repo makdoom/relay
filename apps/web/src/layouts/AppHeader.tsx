@@ -1,5 +1,5 @@
-import CommandPalette from './CommandPalette';
-import UserProfile from './UserProfile';
+import CommandPalette from '../components/CommandPalette';
+import UserProfile from '../components/UserProfile';
 
 const AppHeader = () => {
   return (

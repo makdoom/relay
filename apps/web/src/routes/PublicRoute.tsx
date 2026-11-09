@@ -8,7 +8,7 @@ export const PublicRoute = () => {
     return <div>Checking authentication...</div>;
   }
 
-  if (isAuthenticated) return <Navigate to="/chats" replace />;
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
   return <Outlet />;
 };

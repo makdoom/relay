@@ -42,7 +42,7 @@ const Login = () => {
       if (!password) return toast.error('Password is required');
 
       await login({ identifier: email, password });
-      navigate('/chats', { replace: true });
+      navigate('/', { replace: true });
     } catch (error) {
       toast.error(
         error instanceof Error

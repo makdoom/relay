@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router';
+import { Route, Routes } from 'react-router';
 import MainLayout from '@/layouts/MainLayout';
 // import Chat from '@/pages/Chat';
 import Login from '@/pages/Login';
@@ -17,11 +17,11 @@ const AppRoutes = () => {
 
       {/* Protected routes */}
       <Route element={<ProtectedRoute />}>
-        <Route path="/chats" element={<MainLayout />} />
+        <Route path="/" element={<MainLayout />} />
         {/* <Route path="/conversations" element={<Conversations />} /> */}
       </Route>
 
-      <Route path="/" element={<Navigate to="/chat" replace />} />
+      {/* <Route path="/" element={<Navigate to="/chat" replace />} /> */}
     </Routes>
   );
 };

@@ -70,10 +70,7 @@ export const DropdownMenuGroupLabel = (
 
   return (
     <MenuPrimitive.GroupLabel
-      className={cn(
-        'text-muted-foreground px-1.5 py-1 text-xs font-medium data-inset:ps-7',
-        className
-      )}
+      className={cn('text-muted-foreground px-1.5 py-1 text-xs data-inset:ps-7', className)}
       data-inset={inset}
       data-slot="dropdown-menu-group-label"
       {...rest}
@@ -93,7 +90,7 @@ export const DropdownMenuItem = (
   return (
     <MenuPrimitive.Item
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:text-destructive not-data-[variant=destructive]:focus:**:text-accent-foreground not-data-[variant=destructive]:hover:**:text-accent-foreground not-data-[variant=destructive]:data-highlighted:**:text-accent-foreground gap-1.5 rounded-md px-1.5 py-1 text-sm data-inset:ps-7 [&_svg:not([class*='size-'])]:size-4 group/dropdown-menu-item relative flex cursor-default select-none items-center outline-hidden data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+        "focus:bg-accent cursor-pointer focus:text-accent-foreground hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:text-destructive not-data-[variant=destructive]:focus:**:text-accent-foreground not-data-[variant=destructive]:hover:**:text-accent-foreground not-data-[variant=destructive]:data-highlighted:**:text-accent-foreground gap-1.5 rounded-md px-1.5 py-1 text-sm data-inset:ps-7 [&_svg:not([class*='size-'])]:size-4 group/dropdown-menu-item relative flex select-none items-center outline-hidden data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
         className
       )}
       data-inset={inset}
@@ -147,7 +144,7 @@ export const DropdownMenuSubContent = (props: React.ComponentProps<typeof Dropdo
       align={align}
       alignOffset={alignOffset}
       className={cn(
-        'data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ring-foreground/10 bg-popover text-popover-foreground min-w-[96px] rounded-lg p-1 shadow-lg ring-1 duration-100 w-auto',
+        'data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ring-foreground/10 bg-popover text-popover-foreground min-w-24 rounded-lg p-1 shadow-lg ring-1 duration-100 w-auto',
         className
       )}
       data-slot="dropdown-menu-sub-content"
@@ -178,7 +175,7 @@ export const DropdownMenuCheckboxItem = (
       {...rest}
     >
       <span
-        className="absolute end-2 flex items-center justify-center pointer-events-none"
+        className="absolute inset-e-2 flex items-center justify-center pointer-events-none"
         data-slot="dropdown-menu-checkbox-item-indicator"
       >
         <MenuPrimitive.CheckboxItemIndicator>
@@ -213,7 +210,7 @@ export const DropdownMenuRadioItem = (
       {...rest}
     >
       <span
-        className="absolute end-2 flex items-center justify-center pointer-events-none"
+        className="absolute inset-e-2 flex items-center justify-center pointer-events-none"
         data-slot="dropdown-menu-radio-item-indicator"
       >
         <MenuPrimitive.RadioItemIndicator>

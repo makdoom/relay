@@ -1,6 +1,6 @@
-import AppHeader from '@/components/AppHeader';
-import ChatPane from '@/pages/Chat/ChatPane';
-import ConversationSidebar from '@/pages/Chat/ConversationSidebar';
+import ChatPane from '@/components/chat/ChatPane';
+import ConversationSidebar from '@/components/conversation/ConversationSidebar';
+import AppHeader from '@/layouts/AppHeader';
 import { ConversationProvider } from '@/providers/ConversationProvider';
 
 const MainLayout = () => {
