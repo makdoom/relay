@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, type Dispatch, type SetStateAction } from 'react';
 import type { ConversationFilter, ConversationListItem } from '@/types/conversation';
 
 export type ConversationContextValue = {
@@ -6,6 +6,8 @@ export type ConversationContextValue = {
   filteredConversations: ConversationListItem[];
   isLoading: boolean;
   error: string | null;
+  isUserSearchOpen: boolean;
+  setIsUserSearchOpen: Dispatch<SetStateAction<boolean>>;
   selectedConversationId: string | null;
   selectedConversation: ConversationListItem | null;
   setSelectedConversationId: (id: string | null) => void;

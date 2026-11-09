@@ -19,8 +19,8 @@ const ConversationSidebar = () => {
   console.log(filteredConversations);
 
   return (
-    <div className="w-86 border-r flex flex-col shrink-0 select-none">
-      <div className="h-12 flex items-center justify-between p-2">
+    <div className="w-86 border-r flex flex-col shrink-0 select-none h-full min-h-0">
+      <div className="h-12 flex items-center justify-between p-2 shrink-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-muted-foreground">Chats</span>
         </div>
@@ -77,8 +77,8 @@ const ConversationSidebar = () => {
       {!isLoading && error && <ErrorConversation />}
 
       {!isLoading && !error && (
-        <Tabs defaultValue="all" className="flex flex-col h-full w-full p-2">
-          <TabsList className="w-full border py-4.5 bg-transparent">
+        <Tabs defaultValue="all" className="flex flex-col flex-1 min-h-0 w-full p-2">
+          <TabsList className="w-full border py-4.5 bg-transparent shrink-0">
             <TabsTrigger value="all" className="py-3.5 data-active:bg-secondary!">
               All
             </TabsTrigger>
@@ -92,16 +92,28 @@ const ConversationSidebar = () => {
               Groups
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="all" className="focus:outline-none!">
+          <TabsContent
+            value="all"
+            className="flex flex-col flex-1 min-h-0 overflow-hidden focus:outline-none!"
+          >
             <ConversationList type="all" />
           </TabsContent>
-          <TabsContent value="unread">
+          <TabsContent
+            value="unread"
+            className="flex flex-col flex-1 min-h-0 overflow-hidden focus:outline-none!"
+          >
             <span>Unread</span>
           </TabsContent>
-          <TabsContent value="favourites">
+          <TabsContent
+            value="favourites"
+            className="flex flex-col flex-1 min-h-0 overflow-hidden focus:outline-none!"
+          >
             <span>Favourites</span>
           </TabsContent>
-          <TabsContent value="group">
+          <TabsContent
+            value="group"
+            className="flex flex-col flex-1 min-h-0 overflow-hidden focus:outline-none!"
+          >
             <span>Groups</span>
           </TabsContent>
         </Tabs>

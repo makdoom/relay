@@ -11,6 +11,7 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<ConversationFilter>('all');
+  const [isUserSearchOpen, setIsUserSearchOpen] = useState<boolean>(false);
 
   const fetchConversationList = useCallback(async () => {
     if (!user) {
@@ -73,6 +74,8 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
     filteredConversations,
     selectedConversationId,
     selectedConversation,
+    isUserSearchOpen,
+    setIsUserSearchOpen,
     filter,
     isLoading,
     error,
