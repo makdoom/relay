@@ -6,6 +6,8 @@ export type ConversationContextValue = {
   filteredConversations: ConversationListItem[];
   isLoading: boolean;
   error: string | null;
+  isUserSearchOpen: boolean;
+  setIsUserSearchOpen: (open: boolean) => void;
   selectedConversationId: string | null;
   selectedConversation: ConversationListItem | null;
   setSelectedConversationId: (id: string | null) => void;

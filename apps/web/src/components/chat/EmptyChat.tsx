@@ -1,9 +1,11 @@
 import { Search, Sparkle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useConversation } from '@/hooks/useConversation';
 import { Button } from '../ui/button';
 
 const EmptyChat = () => {
   const { user } = useAuth();
+  const { setIsUserSearchOpen } = useConversation();
 
   return (
     <div className="flex flex-1 h-full items-center justify-center p-8 select-none">
@@ -21,7 +23,7 @@ const EmptyChat = () => {
           start a new direct chat.
         </p>
 
-        <Button className="mt-6">
+        <Button className="mt-6" onClick={() => setIsUserSearchOpen(true)}>
           <Search />
           Discover Teammates (⌘ + K)
         </Button>

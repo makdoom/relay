@@ -3,3 +3,8 @@ export type UserProfile = {
   username: string;
   name: string;
 };
+
+export type SearchUsersParams = {
+  query: string;
+  limit?: number;
+};
