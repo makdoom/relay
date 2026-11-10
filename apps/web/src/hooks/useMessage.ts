@@ -6,13 +6,12 @@ import type { MessageItem, MessageResponse } from '@/types/message';
 export interface UseMessagesReturn {
   messages: MessageItem[];
   isLoadingHistory: boolean;
-  // isLoadingMore: boolean;
-  // hasMore: boolean;
-  // error: string | null;
-  // peerLastReadMessageId: string | null;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  peerLastReadMessageId: string | null;
   loadOlderMessages: () => Promise<void>;
   sendTextMessage: (content: string) => Promise<void>;
-  // retryMessage: (tempId: string) => Promise<void>;
+  retryMessage: (tempId: string) => Promise<void>;
 }
 
 export const useMessage = (
@@ -25,9 +24,21 @@ export const useMessage = (
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [peerLastReadMessageId, setPeerLastReadMessageId] = useState<string | null>(
+    initialPeerLastReadMessageId ?? null
+  );
 
   const activeConvIdRef = useRef<string | null>(conversationId);
   activeConvIdRef.current = conversationId;
+
+  // Keep refs to avoid stale closures during async callbacks
+  const messagesRef = useRef<MessageItem[]>([]);
+  messagesRef.current = messages;
+
+  // Sync peerLastReadMessageId state when initial value or conversation changes
+  useEffect(() => {
+    setPeerLastReadMessageId(initialPeerLastReadMessageId ?? null);
+  }, [initialPeerLastReadMessageId]);
 
   // 1. Initial HTTP message history fetch when conversationId changes
   useEffect(() => {
@@ -188,15 +199,68 @@ export const useMessage = (
     [conversationId, currentUserId]
   );
 
+  // 7. Retry failed send preserving the exact same idempotencyKey (ADR-003)
+  const retryMessage = useCallback(
+    async (tempId: string) => {
+      if (!conversationId) return;
+
+      const target = messagesRef.current.find((m) => m.id === tempId);
+      if (target?.status !== 'failed') return;
+
+      // Transition to pending
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? { ...m, status: 'pending', error: undefined } : m))
+      );
+
+      try {
+        const response = await sendMessage(conversationId, {
+          content: target.content,
+          idempotencyKey: target.idempotencyKey, // Reuses identical idempotencyKey
+        });
+
+        if (activeConvIdRef.current !== conversationId) return;
+
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempId
+              ? {
+                  ...m,
+                  id: response.id,
+                  createdAt: response.createdAt,
+                  status: 'sent',
+                }
+              : m
+          )
+        );
+      } catch (err: unknown) {
+        if (activeConvIdRef.current !== conversationId) return;
+
+        const errorMsg = err instanceof Error ? err.message : 'Retry failed to send';
+
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempId
+              ? {
+                  ...m,
+                  status: 'failed',
+                  error: errorMsg,
+                }
+              : m
+          )
+        );
+      }
+    },
+    [conversationId]
+  );
+
   return {
     messages,
     sendTextMessage,
     isLoadingHistory,
     loadOlderMessages,
-    // retryMessage,
-    // isLoadingMore,
-    // hasMore,
-    // error,
-    // peerLastReadMessageId,
+    peerLastReadMessageId,
+    retryMessage,
+    isLoadingMore,
+    hasMore,
   };
 };
