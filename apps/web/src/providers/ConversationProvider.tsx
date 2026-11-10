@@ -1,8 +1,16 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { createOrGetDirectConversation, listConversations } from '@/api/conversation.api';
+import {
+  createGroupConversation,
+  createOrGetDirectConversation,
+  listConversations,
+} from '@/api/conversation.api';
 import { ConversationContext, type ConversationContextValue } from '@/context/ConversationContext';
 import { useAuth } from '@/hooks/useAuth';
-import type { ConversationFilter, ConversationListItem } from '@/types/conversation';
+import type {
+  ConversationFilter,
+  ConversationListItem,
+  CreateGroupInput,
+} from '@/types/conversation';
 
 export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
@@ -12,6 +20,7 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<ConversationFilter>('all');
   const [isUserSearchOpen, setIsUserSearchOpen] = useState<boolean>(false);
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState<boolean>(false);
 
   const fetchConversationList = useCallback(async () => {
     if (!user) {
@@ -45,6 +54,17 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
       await fetchConversationList();
       setSelectedConversationId(record.id);
       return record.id;
+    },
+    [fetchConversationList]
+  );
+
+  const createGroupChat = useCallback(
+    async (input: CreateGroupInput): Promise<string> => {
+      const conversation = await createGroupConversation(input);
+      await fetchConversationList();
+      setSelectedConversationId(conversation.id);
+      setIsCreateGroupOpen(false);
+      return conversation.id;
     },
     [fetchConversationList]
   );
@@ -83,6 +103,9 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
     setFilter,
     refreshConversations,
     startDirectChat,
+    isCreateGroupOpen,
+    setIsCreateGroupOpen,
+    createGroupChat,
   };
 
   return <ConversationContext.Provider value={value}>{children}</ConversationContext.Provider>;

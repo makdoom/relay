@@ -46,3 +46,30 @@ export interface DirectConversationResponse {
 export interface CreateDirectConversationInput {
   recipientId: string;
 }
+
+export interface GroupMemberItem {
+  userId: string;
+  role: 'admin' | 'member' | string;
+  joinedAt: string;
+  leftAt: string | null;
+  lastReadMessageId?: string | null;
+  lastReadAt?: string | null;
+  name: string;
+  username: string;
+}
+
+export interface CreateGroupInput {
+  title: string;
+  memberIds?: string[];
+}
+
+export interface GroupConversationResponse {
+  conversation: {
+    id: string;
+    type: 'group';
+    title: string | null;
+    createdAt: string;
+    updatedAt: string;
+    members: GroupMemberItem[];
+  };
+}

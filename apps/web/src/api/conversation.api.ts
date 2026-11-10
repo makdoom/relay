@@ -2,7 +2,9 @@ import type {
   ConversationListItem,
   ConversationRecord,
   CreateDirectConversationInput,
+  CreateGroupInput,
   DirectConversationResponse,
+  GroupConversationResponse,
   ListConversationsResponse,
 } from '@/types/conversation';
 import apiClient from './client';
@@ -24,5 +26,15 @@ export async function createOrGetDirectConversation(
   const response = await apiClient.post<DirectConversationResponse>('/conversations/direct', {
     recipientId: input.recipientId,
   });
+  return response.data.conversation;
+}
+
+/**
+ * Create a new group conversation with creator as admin.
+ */
+export async function createGroupConversation(
+  input: CreateGroupInput
+): Promise<GroupConversationResponse['conversation']> {
+  const response = await apiClient.post<GroupConversationResponse>('/conversations/group', input);
   return response.data.conversation;
 }

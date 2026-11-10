@@ -1,7 +1,7 @@
 import { useConversation } from '@/hooks/useConversation';
 import { cn } from '@/lib/utils';
 import type { ConversationListItem } from '@/types/conversation';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '../ui/item';
 
 const ConversationItem = ({ conversation }: { conversation: ConversationListItem }) => {
@@ -28,7 +28,7 @@ const ConversationItem = ({ conversation }: { conversation: ConversationListItem
       >
         <ItemMedia>
           <Avatar className="size-9">
-            <AvatarImage src="https://githusb.com/evilrabbit.png" />
+            {/* <AvatarImage src="https://githusb.com/evilrabbit.png" /> */}
             <AvatarFallback className="text-sm font-semibold">{initials}</AvatarFallback>
           </Avatar>
         </ItemMedia>
@@ -53,7 +53,7 @@ const ConversationItem = ({ conversation }: { conversation: ConversationListItem
     >
       <ItemMedia>
         <Avatar className="size-9">
-          <AvatarImage src="https://gitshub.com/evilrabbit.png" />
+          {/* <AvatarImage src="https://gitshub.com/evilrabbit.png" /> */}
           <AvatarFallback className="text-sm font-semibold">#</AvatarFallback>
         </Avatar>
       </ItemMedia>

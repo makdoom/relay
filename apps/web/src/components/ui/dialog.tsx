@@ -140,7 +140,7 @@ export const DialogContent = (props: DialogContentProps) => {
           {showCloseButton ? (
             <DialogClose
               render={
-                <Button className="absolute top-2 end-2 absolute!" size="icon-sm" variant="ghost" />
+                <Button className="absolute top-2 inset-e-2" size="icon-sm" variant="ghost" />
               }
             >
               <XIcon aria-hidden="true" />
