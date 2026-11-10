@@ -1,11 +1,25 @@
 import { Hash } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { useConversation } from '@/hooks/useConversation';
+import { useMessage } from '@/hooks/useMessage';
 import MessageComposor from '../message/MessageComposor';
 import MessageTimeline from '../message/MessageTimeline';
 import EmptyChat from './EmptyChat';
 
 const ChatPane = () => {
+  const { user } = useAuth();
   const { selectedConversation } = useConversation();
+
+  const initialPeerReadId =
+    selectedConversation?.type === 'direct'
+      ? (selectedConversation?.recipientLastReadMessageId ?? null)
+      : null;
+
+  const { sendTextMessage, isLoadingHistory } = useMessage(
+    selectedConversation?.id ?? null,
+    user?.id,
+    initialPeerReadId
+  );
 
   if (!selectedConversation) return <EmptyChat />;
 
@@ -50,7 +64,13 @@ const ChatPane = () => {
       <MessageTimeline />
 
       {/* Docked Message Composer */}
-      <MessageComposor />
+      <MessageComposor
+        placeholder={`Type a message`}
+        onSend={sendTextMessage}
+        // onTyping={sendTypingStart}
+        // onStopTyping={sendTypingStop}
+        disabled={isLoadingHistory}
+      />
     </main>
   );
 };
