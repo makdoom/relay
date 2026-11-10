@@ -15,11 +15,16 @@ const ChatPane = () => {
       ? (selectedConversation?.recipientLastReadMessageId ?? null)
       : null;
 
-  const { sendTextMessage, isLoadingHistory } = useMessage(
-    selectedConversation?.id ?? null,
-    user?.id,
-    initialPeerReadId
-  );
+  const {
+    messages,
+    sendTextMessage,
+    isLoadingHistory,
+    peerLastReadMessageId,
+    hasMore,
+    isLoadingMore,
+    loadOlderMessages,
+    retryMessage,
+  } = useMessage(selectedConversation?.id ?? null, user?.id, initialPeerReadId);
 
   if (!selectedConversation) return <EmptyChat />;
 
@@ -37,6 +42,8 @@ const ChatPane = () => {
           .toUpperCase()
       : selectedConversation.recipient.username.slice(0, 2).toUpperCase()
     : 'G';
+
+  console.log(isDirect, selectedConversation);
 
   return (
     <main className="flex-1 h-full flex flex-col min-w-0">
@@ -61,7 +68,17 @@ const ChatPane = () => {
       </header>
 
       {/* Message Timeline Feed */}
-      <MessageTimeline />
+      <MessageTimeline
+        messages={messages}
+        currentUserId={user?.id}
+        recipientName={isDirect ? selectedConversation?.recipient.name : undefined}
+        peerLastReadMessageId={peerLastReadMessageId}
+        hasMore={hasMore}
+        isLoadingHistory={isLoadingHistory}
+        isLoadingMore={isLoadingMore}
+        onLoadOlder={loadOlderMessages}
+        onRetryMessage={retryMessage}
+      />
 
       {/* Docked Message Composer */}
       <MessageComposor
