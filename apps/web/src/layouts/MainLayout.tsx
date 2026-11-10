@@ -1,5 +1,6 @@
 import ChatPane from '@/components/chat/ChatPane';
 import ConversationSidebar from '@/components/conversation/ConversationSidebar';
+import CreateGroupDialog from '@/components/conversation/CreateGroupDialog';
 import AppHeader from '@/layouts/AppHeader';
 import { ConversationProvider } from '@/providers/ConversationProvider';
 
@@ -12,6 +13,8 @@ const MainLayout = () => {
           <ConversationSidebar />
           <ChatPane />
         </div>
+
+        <CreateGroupDialog />
       </div>
     </ConversationProvider>
   );

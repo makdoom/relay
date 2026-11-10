@@ -6,7 +6,6 @@ import EmptyChat from './EmptyChat';
 
 const ChatPane = () => {
   const { selectedConversation } = useConversation();
-  console.log(selectedConversation);
 
   if (!selectedConversation) return <EmptyChat />;
 

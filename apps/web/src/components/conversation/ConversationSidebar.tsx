@@ -14,9 +14,8 @@ import EmptyConversation from './EmptyConversation';
 import ErrorConversation from './ErrorConversation';
 
 const ConversationSidebar = () => {
-  const { isLoading, error, filteredConversations } = useConversation();
-
-  console.log(filteredConversations);
+  const { isLoading, error, filteredConversations, setIsUserSearchOpen, setIsCreateGroupOpen } =
+    useConversation();
 
   return (
     <div className="w-86 border-r flex flex-col shrink-0 select-none h-full min-h-0">
@@ -35,11 +34,17 @@ const ConversationSidebar = () => {
             }
           />
           <DropdownMenuContent className="w-40">
-            <DropdownMenuItem className="gap-2 text-muted-foreground">
+            <DropdownMenuItem
+              className="gap-2 text-muted-foreground"
+              onClick={() => setIsUserSearchOpen(true)}
+            >
               <MessageSquare className="size-3.5" />
               <span className="text-sm">Direct Chat</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-muted-foreground">
+            <DropdownMenuItem
+              className="gap-2 text-muted-foreground"
+              onClick={() => setIsCreateGroupOpen(true)}
+            >
               <Users className="size-3.5" />
               <span className="text-sm">Group Chat</span>
             </DropdownMenuItem>
