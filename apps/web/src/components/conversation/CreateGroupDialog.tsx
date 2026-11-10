@@ -64,6 +64,17 @@ const CreateGroupDialog = () => {
     }
   };
 
+  // Focus title input on dialog open and reset form
+  useEffect(() => {
+    if (isCreateGroupOpen) {
+      setTitle('');
+      setMemberQuery('');
+      setSearchResults([]);
+      setSelectedMembers([]);
+      setIsSubmitting(false);
+    }
+  }, [isCreateGroupOpen]);
+
   // Debounced search for teammates to invite
   useEffect(() => {
     const trimmed = memberQuery.trim();

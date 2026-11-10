@@ -35,14 +35,14 @@ const ConversationSidebar = () => {
           />
           <DropdownMenuContent className="w-40">
             <DropdownMenuItem
-              className="gap-2 text-muted-foreground"
+              className="px-2 gap-2 text-muted-foreground"
               onClick={() => setIsUserSearchOpen(true)}
             >
               <MessageSquare className="size-3.5" />
               <span className="text-sm">Direct Chat</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="gap-2 text-muted-foreground"
+              className="px-2 gap-2 text-muted-foreground"
               onClick={() => setIsCreateGroupOpen(true)}
             >
               <Users className="size-3.5" />
