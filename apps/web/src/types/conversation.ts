@@ -2,30 +2,37 @@ import type { UserProfile } from './user';
 
 export type ConversationType = 'direct' | 'group';
 
-export type ConversationFilter = 'all' | 'direct' | 'group' | 'unread';
+export interface LastMessagePreview {
+  content: string;
+  senderId: string;
+  createdAt: string;
+}
 
-export type DirectConversationListItem = {
+export interface DirectConversationListItem {
   id: string;
   type: 'direct';
   recipient: UserProfile;
+  recipientLastReadMessageId?: string | null;
+  lastReadMessageId?: string | null;
+  unreadCount?: number;
+  lastMessage?: LastMessagePreview | null;
   createdAt: string;
   updatedAt: string;
-};
+}
 
-export type GroupConversationListItem = {
+export interface GroupConversationListItem {
   id: string;
   type: 'group';
   title: string | null;
   role: 'admin' | 'member' | string;
+  lastReadMessageId?: string | null;
+  unreadCount?: number;
+  lastMessage?: LastMessagePreview | null;
   createdAt: string;
   updatedAt: string;
-};
+}
 
 export type ConversationListItem = DirectConversationListItem | GroupConversationListItem;
-
-export interface ListConversationsResponse {
-  conversations: ConversationListItem[];
-}
 
 export interface ConversationRecord {
   id: string;
@@ -73,3 +80,9 @@ export interface GroupConversationResponse {
     members: GroupMemberItem[];
   };
 }
+
+export interface GroupMembersResponse {
+  members: GroupMemberItem[];
+}
+
+export type ConversationFilter = 'all' | 'direct' | 'group' | 'unread';

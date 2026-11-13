@@ -19,12 +19,18 @@ export interface RawConversationListRow {
   conversationId: string;
   type: string;
   title: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   role: string;
   recipientId: string | null;
   recipientName: string | null;
   recipientUsername: string | null;
+  recipientLastReadMessageId?: string | null;
+  lastReadMessageId?: string | null;
+  unreadCount?: number;
+  lastMessageContent?: string | null;
+  lastMessageSenderId?: string | null;
+  lastMessageCreatedAt?: Date | string | null;
 }
 
 export interface RawGroupMemberWithUser {
@@ -32,6 +38,8 @@ export interface RawGroupMemberWithUser {
   role: string;
   joinedAt: Date;
   leftAt: Date | null;
+  lastReadMessageId?: string | null;
+  lastReadAt?: Date | null;
   name: string;
   username: string;
 }

@@ -3,6 +3,9 @@ import type {
   MessageResponse,
   PaginatedMessagesResponse,
 } from '../modules/messages/messages.schema.js';
+
+export type { MessageResponse, PaginatedMessagesResponse };
+
 import type {
   SocketConversationRoomInput,
   SocketHistorySyncInput,
@@ -29,6 +32,7 @@ export interface SocketErrorPayload {
   message: string;
   statusCode?: number;
   details?: unknown;
+  requestId?: string;
 }
 
 /**
@@ -132,6 +136,7 @@ export interface SocketReadReceiptEvent {
 export interface ClientToServerEvents {
   /**
    * Sends a message over the socket.
+   * Invokes the Phase 5 durable persistence pipeline (authorization, ACID write, idempotency).
    * Callback returns the persistence acknowledgement.
    */
   'message:send': (
@@ -224,7 +229,8 @@ export interface ServerToClientEvents {
   error: (error: SocketErrorPayload) => void;
 }
 
-// Internal server events
+// Inter-server events for multi-instance communication (used later in Phase 9 with Redis)
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type InterServerEvents = {};
 
 export type AppSocket = BaseSocket<

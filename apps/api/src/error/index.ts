@@ -38,6 +38,8 @@ export const ErrorCodes = {
   CANNOT_JOIN_LEFT_CONVERSATION: 'CANNOT_JOIN_LEFT_CONVERSATION',
 
   CURSOR_NOT_FOUND: 'CURSOR_NOT_FOUND',
+  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+  PAYLOAD_TOO_LARGE: 'PAYLOAD_TOO_LARGE',
 } as const;
 
 export type ErrorCodes = (typeof ErrorCodes)[keyof typeof ErrorCodes];
@@ -99,5 +101,27 @@ export class NotFoundError extends AppError {
 export class ConflictError extends AppError {
   constructor(message = 'Conflict', code: ErrorCodes = ErrorCodes.CONFLICT) {
     super(message, 409, code, true);
+  }
+}
+
+export class TooManyRequestsError extends AppError {
+  public readonly retryAfterSeconds?: number;
+
+  constructor(
+    message = 'Too many requests, please try again later',
+    code: ErrorCodes = ErrorCodes.RATE_LIMIT_EXCEEDED,
+    retryAfterSeconds?: number
+  ) {
+    super(message, 429, code, true);
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+export class PayloadTooLargeError extends AppError {
+  constructor(
+    message = 'Request payload exceeds maximum allowed size',
+    code = ErrorCodes.PAYLOAD_TOO_LARGE
+  ) {
+    super(message, 413, code, true);
   }
 }

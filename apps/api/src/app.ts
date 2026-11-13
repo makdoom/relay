@@ -1,29 +1,40 @@
 import cookieParser from 'cookie-parser';
-import cors from 'cors';
 import express, { type Application } from 'express';
 import { config } from './config/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { apiRateLimitMiddleware } from './middleware/rateLimiter.js';
+import { requestIdMiddleware } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { authRouter } from './modules/auth/auth.route.js';
 import { conversationsRouter } from './modules/conversations/conversations.route.js';
 import { healthRouter } from './modules/health/health.route.js';
 import { userRouter } from './modules/users/users.route.js';
 
-const createApp = (): Application => {
+export function createApp(): Application {
   const app = express();
 
-  // Baseline request logging
+  // Correlation ID & distributed context middleware (Milestone 8.3)
+  app.use(requestIdMiddleware);
+
+  // Baseline request logging and metrics instrumentation
   app.use(requestLogger);
 
-  // Middlewares
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(cookieParser());
-  app.use(cors({ origin: config.cors.origin, credentials: true }));
+  // Body parsing with strict payload size limit (Milestone 8.2)
+  app.use(express.json({ limit: config.bodyLimit }));
+  app.use(express.urlencoded({ extended: true, limit: config.bodyLimit }));
 
-  // Routes
+  // Cookie parsing
+  app.use(cookieParser());
+
+  // Health checks and Prometheus metrics (unthrottled operational endpoints)
   app.use('/health', healthRouter);
+  // app.use('/metrics', metricsRouter);
+
+  // Global API rate limiting (Milestone 8.2)
+  app.use('/api/v1', apiRateLimitMiddleware);
+
+  // API Routes
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', userRouter);
   app.use('/api/v1/conversations', conversationsRouter);
@@ -35,6 +46,6 @@ const createApp = (): Application => {
   app.use(errorHandler);
 
   return app;
-};
+}
 
 export const app = createApp();

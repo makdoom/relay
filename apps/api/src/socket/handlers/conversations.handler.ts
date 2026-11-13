@@ -9,16 +9,22 @@ import {
 } from '../schemas.js';
 import type { AppSocket, AppSocketServer } from '../types.js';
 
-// Standardizes the conversation room name.
-export const getConversationRoomName = (conversationId: string): string => {
+/**
+ * Standardizes the conversation room name.
+ */
+export function getConversationRoomName(conversationId: string): string {
   return `conversation:${conversationId}`;
-};
+}
 
-export const registerConversationHandler = (_io: AppSocketServer, socket: AppSocket): void => {
+/**
+ * Registers conversation room subscription event handlers ('conversation:join', 'conversation:leave')
+ * for an authenticated client socket.
+ */
+export function registerConversationHandlers(_io: AppSocketServer, socket: AppSocket): void {
   const currentUserId = socket.data.user.id;
 
   socket.on('conversation:join', async (rawPayload, ack) => {
-    // Validate payload structure with Zod
+    // 1. Validate payload structure with Zod
     const parsed = socketConversationRoomSchema.safeParse(rawPayload);
     if (!parsed.success) {
       if (typeof ack === 'function') {
@@ -33,17 +39,18 @@ export const registerConversationHandler = (_io: AppSocketServer, socket: AppSoc
     const { conversationId } = parsed.data;
 
     try {
-      // Verify conversation existence
+      // 2. Verify conversation existence
       const conversation = await conversationsRepository.findConversationById(conversationId);
-      if (!conversation)
+      if (!conversation) {
         throw new NotFoundError('Conversation not found', 'CONVERSATION_NOT_FOUND');
+      }
 
       // 3. Enforce membership authorization: user must be an active participant
       const member = await conversationsRepository.findMember(conversationId, currentUserId);
-      if (!member)
+      if (!member) {
         throw new ForbiddenError('You are not a member of this conversation', 'NOT_A_MEMBER');
+      }
 
-      // Check if user has left the conversation
       if (member.leftAt !== null) {
         throw new ForbiddenError(
           'You have left this conversation and cannot rejoin real-time updates',
@@ -51,7 +58,7 @@ export const registerConversationHandler = (_io: AppSocketServer, socket: AppSoc
         );
       }
 
-      // Join the room on the socket
+      // 4. Join the room on the socket
       const room = getConversationRoomName(conversationId);
       await socket.join(room);
 
@@ -62,14 +69,14 @@ export const registerConversationHandler = (_io: AppSocketServer, socket: AppSoc
         room,
       });
 
-      // Acknowledge successful room subscription
+      // 5. Acknowledge successful room subscription
       if (typeof ack === 'function') {
         ack(createSocketSuccessAck({ conversationId }));
       }
-    } catch (error) {
-      if (error instanceof AppError) {
+    } catch (err: unknown) {
+      if (err instanceof AppError) {
         if (typeof ack === 'function') {
-          ack(createSocketErrorAck(error.code, error.message, error.statusCode));
+          ack(createSocketErrorAck(err.code, err.message, err.statusCode));
         }
         return;
       }
@@ -77,7 +84,7 @@ export const registerConversationHandler = (_io: AppSocketServer, socket: AppSoc
       logger.error('Unhandled error in socket conversation:join handler', {
         userId: currentUserId,
         conversationId,
-        error: error instanceof Error ? error.message : String(error),
+        error: err instanceof Error ? err.message : String(err),
       });
 
       if (typeof ack === 'function') {
@@ -117,4 +124,4 @@ export const registerConversationHandler = (_io: AppSocketServer, socket: AppSoc
       ack(createSocketSuccessAck({ conversationId }));
     }
   });
-};
+}
