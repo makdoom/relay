@@ -1,15 +1,13 @@
 import { AlertCircle, Check, CheckCheck, Clock, RefreshCw } from 'lucide-react';
 import type { MessageItem as MessageItemType } from '@/types/message';
-import { Bubble, BubbleContent } from '../ui/bubble';
-import { Message, MessageContent } from '../ui/message';
 
-type MessageItemProps = {
+interface MessageItemProps {
   message: MessageItemType;
   isOutgoing: boolean;
   senderName?: string;
   isRead?: boolean;
   onRetry?: (id: string) => void;
-};
+}
 
 function formatMessageTime(isoString: string): string {
   try {
@@ -20,7 +18,13 @@ function formatMessageTime(isoString: string): string {
   }
 }
 
-const MessageItem = ({ message, isOutgoing, senderName, isRead, onRetry }: MessageItemProps) => {
+export const MessageItem: React.FC<MessageItemProps> = ({
+  message,
+  isOutgoing,
+  senderName,
+  isRead,
+  onRetry,
+}) => {
   const timeFormatted = formatMessageTime(message.createdAt);
 
   if (isOutgoing) {
@@ -37,7 +41,7 @@ const MessageItem = ({ message, isOutgoing, senderName, isRead, onRetry }: Messa
           }`}
         >
           {/* Content */}
-          <div className="whitespace-pre-wrap break-words">{message.content}</div>
+          <div className="whitespace-pre-wrap wrap-break-word">{message.content}</div>
 
           {/* Sub-bar: Timestamp & Status icon */}
           <div className="flex items-center justify-end gap-1.5 mt-1 text-[10px] font-mono text-zinc-400">
@@ -84,19 +88,37 @@ const MessageItem = ({ message, isOutgoing, senderName, isRead, onRetry }: Messa
     );
   }
 
+  // Incoming Message Bubble
+  const initials = senderName
+    ? senderName
+        .split(' ')
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
+    : 'U';
+
   return (
-    <Message align="end">
-      <MessageContent>
-        <Bubble variant="secondary">
-          <BubbleContent className="flex flex-col">
-            <p className="text-sm">{message.content}</p>
-            <span className="text-[11px] text-muted-foreground flex items-center justify-end">
-              12:08 am
-            </span>
-          </BubbleContent>
-        </Bubble>
-      </MessageContent>
-    </Message>
+    <div className="flex items-start gap-2.5 my-1.5 select-text group max-w-[82%] sm:max-w-[72%]">
+      {/* Avatar */}
+      <div className="w-7 h-7 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 font-semibold flex items-center justify-center text-[10px] shrink-0 mt-0.5 select-none">
+        {initials}
+      </div>
+
+      <div className="flex flex-col items-start min-w-0">
+        {/* Sender Name & Timestamp */}
+        {senderName && (
+          <div className="flex items-baseline gap-2 mb-1 px-1">
+            <span className="text-[11px] font-medium text-zinc-300 truncate">{senderName}</span>
+            <span className="text-[10px] font-mono text-zinc-400">{timeFormatted}</span>
+          </div>
+        )}
+
+        {/* Bubble */}
+        <div className="rounded-2xl rounded-tl-xs px-3.5 py-2.5 bg-[#13151b] border border-white/5 text-zinc-200 shadow-sm text-xs leading-relaxed whitespace-pre-wrap wrap-break-word">
+          {message.content}
+        </div>
+      </div>
+    </div>
   );
 };
-export default MessageItem;

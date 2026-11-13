@@ -6,6 +6,7 @@ import {
 } from '@/api/conversation.api';
 import { ConversationContext, type ConversationContextValue } from '@/context/ConversationContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useSocket } from '@/hooks/useSocket';
 import type {
   ConversationFilter,
   ConversationListItem,
@@ -14,6 +15,7 @@ import type {
 
 export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const [conversations, setConversations] = useState<ConversationListItem[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -88,6 +90,20 @@ export const ConversationProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     fetchConversationList();
   }, [fetchConversationList]);
+
+  // Refresh conversation list when a new message arrives across any conversation
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = () => {
+      fetchConversationList();
+    };
+
+    socket.on('message:new', handleNewMessage);
+    return () => {
+      socket.off('message:new', handleNewMessage);
+    };
+  }, [socket, fetchConversationList]);
 
   const value: ConversationContextValue = {
     conversations,

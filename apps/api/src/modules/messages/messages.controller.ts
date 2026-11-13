@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { BadRequestError, UnauthorizedError } from '../../error/index.js';
+import { type AppSocketServer, getConversationRoomName } from '../../socket/index.js';
 import {
   conversationIdParamSchema,
   listMessagesQuerySchema,
@@ -30,6 +31,15 @@ export const messagesController = {
       content: bodyResult.data.content,
       idempotencyKey: bodyResult.data.idempotencyKey,
     });
+
+    if (!result.isDuplicate) {
+      const io = req.app.get('io') as AppSocketServer | undefined;
+      if (io) {
+        io.to(getConversationRoomName(paramResult.data.conversationId)).emit('message:new', {
+          message: result.message,
+        });
+      }
+    }
 
     const statusCode = result.isDuplicate ? 200 : 201;
     res.status(statusCode).json({

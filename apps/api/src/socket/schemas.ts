@@ -6,7 +6,7 @@ import type { SocketAck, SocketErrorPayload } from './types.js';
  * Mirrors the HTTP POST /api/v1/conversations/:conversationId/messages validation rules.
  */
 export const socketSendMessageSchema = z.object({
-  conversationId: z.uuid('Invalid conversation Id format'),
+  conversationId: z.string().uuid('Invalid conversation ID format'),
   content: z
     .string()
     .trim()
@@ -26,7 +26,7 @@ export type SocketSendMessageInput = z.infer<typeof socketSendMessageSchema>;
  * Zod schema for validating conversation room operations ('conversation:join', 'conversation:leave').
  */
 export const socketConversationRoomSchema = z.object({
-  conversationId: z.uuid('Invalid conversation ID format'),
+  conversationId: z.string().uuid('Invalid conversation ID format'),
 });
 
 export type SocketConversationRoomInput = z.infer<typeof socketConversationRoomSchema>;
@@ -35,18 +35,18 @@ export type SocketConversationRoomInput = z.infer<typeof socketConversationRoomS
  * Zod schema for validating ephemeral typing indicator events ('typing:start', 'typing:stop').
  */
 export const socketTypingSchema = z.object({
-  conversationId: z.uuid('Invalid conversation ID format'),
+  conversationId: z.string().uuid('Invalid conversation ID format'),
 });
 
 export type SocketTypingInput = z.infer<typeof socketTypingSchema>;
 
 /**
  * Zod schema for validating read-state / watermark update event ('read:update').
- * Advances the participant's last_read_message_id watermark.
+ * Per ADR-005, advances the participant's last_read_message_id watermark.
  */
 export const socketReadUpdateSchema = z.object({
-  conversationId: z.uuid('Invalid conversation ID format'),
-  lastReadMessageId: z.uuid('Invalid message ID format'),
+  conversationId: z.string().uuid('Invalid conversation ID format'),
+  lastReadMessageId: z.string().uuid('Invalid message ID format'),
 });
 
 export type SocketReadUpdateInput = z.infer<typeof socketReadUpdateSchema>;
@@ -56,8 +56,8 @@ export type SocketReadUpdateInput = z.infer<typeof socketReadUpdateSchema>;
  * Allows reconnecting clients to retrieve messages committed since a cursor.
  */
 export const socketHistorySyncSchema = z.object({
-  conversationId: z.uuid('Invalid conversation ID format'),
-  cursor: z.uuid('Cursor must be a valid UUID').optional(),
+  conversationId: z.string().uuid('Invalid conversation ID format'),
+  cursor: z.string().uuid('Cursor must be a valid UUID').optional(),
   limit: z
     .number()
     .int('Limit must be an integer')
@@ -84,22 +84,23 @@ export type SocketPresenceQueryInput = z.infer<typeof socketPresenceQuerySchema>
 /**
  * Formats a successful Socket.IO acknowledgement response.
  */
-export const createSocketSuccessAck = <T>(data: T): SocketAck<T> => {
+export function createSocketSuccessAck<T>(data: T): SocketAck<T> {
   return {
     success: true,
     data,
   };
-};
+}
 
 /**
  * Formats an error Socket.IO acknowledgement response.
  */
-export const createSocketErrorAck = (
+export function createSocketErrorAck(
   code: string,
   message: string,
   statusCode = 400,
-  details?: unknown
-): SocketAck<never> => {
+  details?: unknown,
+  requestId?: string
+): SocketAck<never> {
   const error: SocketErrorPayload = {
     code,
     message,
@@ -109,17 +110,20 @@ export const createSocketErrorAck = (
   if (details !== undefined) {
     error.details = details;
   }
+  if (requestId !== undefined) {
+    error.requestId = requestId;
+  }
 
   return {
     success: false,
     error,
   };
-};
+}
 
 /**
  * Formats Zod validation errors into a standardized SocketErrorPayload.
  */
-export const formatZodSocketError = (error: z.ZodError): SocketErrorPayload => {
+export function formatZodSocketError(error: z.ZodError): SocketErrorPayload {
   const issues = error.issues.map((issue) => ({
     field: issue.path.join('.'),
     message: issue.message,
@@ -131,4 +135,4 @@ export const formatZodSocketError = (error: z.ZodError): SocketErrorPayload => {
     statusCode: 400,
     details: issues,
   };
-};
+}

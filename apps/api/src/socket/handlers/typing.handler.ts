@@ -10,6 +10,7 @@ export const DEFAULT_TYPING_TIMEOUT_MS = 3000;
 /**
  * In-memory map of active typing auto-expiry timers.
  * Key format: `${conversationId}:${userId}`
+ * Ephemeral state per ADR-008: Never persisted to PostgreSQL.
  */
 const activeTypingTimers = new Map<string, NodeJS.Timeout>();
 
@@ -17,19 +18,19 @@ const activeTypingTimers = new Map<string, NodeJS.Timeout>();
  * Clears all active typing timers.
  * Useful for test suite isolation and graceful server shutdowns.
  */
-export const clearAllTypingTimers = (): void => {
+export function clearAllTypingTimers(): void {
   for (const timer of activeTypingTimers.values()) {
     clearTimeout(timer);
   }
   activeTypingTimers.clear();
-};
+}
 
 /**
  * Returns the active timer count (useful for test assertions).
  */
-export const getActiveTypingTimersCount = (): number => {
+export function getActiveTypingTimersCount(): number {
   return activeTypingTimers.size;
-};
+}
 
 export interface RegisterTypingHandlersOptions {
   timeoutMs?: number;
@@ -39,17 +40,19 @@ export interface RegisterTypingHandlersOptions {
  * Registers ephemeral typing indicator event handlers ('typing:start', 'typing:stop')
  * for an authenticated client socket.
  *
+ * Implements Milestone 6.5:
  * 1. Validates payload format with Zod (socketTypingSchema).
  * 2. Enforces active conversation membership authorization.
  * 3. Broadcasts 'typing:update' to the conversation room excluding the sender (socket.to).
  * 4. Schedules an in-memory auto-expiry timer (3s) to prevent stuck typing indicators.
  * 5. Cleans up timers and emits 'isTyping: false' upon socket disconnection.
+ * 6. Ensures zero PostgreSQL database writes (ADR-008).
  */
-export const registerTypingHandlers = (
+export function registerTypingHandlers(
   io: AppSocketServer,
   socket: AppSocket,
   options: RegisterTypingHandlersOptions = {}
-): void => {
+): void {
   const timeoutMs = options.timeoutMs ?? DEFAULT_TYPING_TIMEOUT_MS;
   const currentUserId = socket.data.user.id;
 
@@ -60,7 +63,7 @@ export const registerTypingHandlers = (
    * Helper to verify if the user is authorized to interact with the conversation.
    * Checks room presence first, falling back to database membership verification.
    */
-  const isAuthorized = async (conversationId: string, room: string): Promise<boolean> => {
+  async function isAuthorized(conversationId: string, room: string): Promise<boolean> {
     if (socket.rooms.has(room)) {
       return true;
     }
@@ -76,7 +79,7 @@ export const registerTypingHandlers = (
     }
 
     return true;
-  };
+  }
 
   // Handle typing:start
   socket.on('typing:start', async (rawPayload: SocketTypingInput) => {
@@ -268,4 +271,4 @@ export const registerTypingHandlers = (
 
     socketTypingConvs.clear();
   });
-};
+}

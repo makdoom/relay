@@ -1,7 +1,7 @@
 import { Hash } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversation } from '@/hooks/useConversation';
-import { useMessage } from '@/hooks/useMessage';
+import { useMessages } from '@/hooks/useMessage';
 import MessageComposor from '../message/MessageComposor';
 import MessageTimeline from '../message/MessageTimeline';
 import EmptyChat from './EmptyChat';
@@ -24,7 +24,7 @@ const ChatPane = () => {
     isLoadingMore,
     loadOlderMessages,
     retryMessage,
-  } = useMessage(selectedConversation?.id ?? null, user?.id, initialPeerReadId);
+  } = useMessages(selectedConversation?.id ?? null, user?.id, initialPeerReadId);
 
   if (!selectedConversation) return <EmptyChat />;
 

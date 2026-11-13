@@ -19,6 +19,26 @@ import type {
   GroupMemberItem,
 } from './conversations.schema.js';
 
+function toIsoString(val: Date | string | null | undefined): string | null {
+  if (!val) return null;
+  if (val instanceof Date) {
+    return Number.isNaN(val.getTime()) ? null : val.toISOString();
+  }
+  const d = new Date(val);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function requireIsoString(val: Date | string, fallback: Date = new Date()): string {
+  if (val instanceof Date && !Number.isNaN(val.getTime())) {
+    return val.toISOString();
+  }
+  const d = new Date(val);
+  if (!Number.isNaN(d.getTime())) {
+    return d.toISOString();
+  }
+  return fallback.toISOString();
+}
+
 export interface GetOrCreateDirectResult {
   conversation: DirectConversationResponse;
   isNew: boolean;
@@ -96,6 +116,14 @@ export const conversationsService = {
     );
 
     return rows.map((row): ConversationListItem => {
+      const lastMessage = row.lastMessageContent
+        ? {
+            content: row.lastMessageContent,
+            senderId: row.lastMessageSenderId!,
+            createdAt: toIsoString(row.lastMessageCreatedAt) ?? requireIsoString(row.updatedAt),
+          }
+        : null;
+
       if (row.type === 'direct') {
         return {
           id: row.conversationId,
@@ -105,8 +133,12 @@ export const conversationsService = {
             name: row.recipientName!,
             username: row.recipientUsername!,
           },
-          createdAt: row.createdAt.toISOString(),
-          updatedAt: row.updatedAt.toISOString(),
+          recipientLastReadMessageId: row.recipientLastReadMessageId ?? null,
+          lastReadMessageId: row.lastReadMessageId ?? null,
+          unreadCount: row.unreadCount ?? 0,
+          lastMessage,
+          createdAt: requireIsoString(row.createdAt),
+          updatedAt: requireIsoString(row.updatedAt),
         };
       }
 
@@ -115,8 +147,11 @@ export const conversationsService = {
         type: 'group',
         title: row.title,
         role: row.role,
-        createdAt: row.createdAt.toISOString(),
-        updatedAt: row.updatedAt.toISOString(),
+        lastReadMessageId: row.lastReadMessageId ?? null,
+        unreadCount: row.unreadCount ?? 0,
+        lastMessage,
+        createdAt: requireIsoString(row.createdAt),
+        updatedAt: requireIsoString(row.updatedAt),
       };
     });
   },

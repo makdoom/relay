@@ -2,17 +2,23 @@ import { UnauthorizedError } from '../../error/index.js';
 import { ACCESS_TOKEN_COOKIE_NAME, verifyAccessToken } from '../../utils/token.js';
 import type { AppSocket, SocketAuthError } from '../types.js';
 
-const parseCookies = (cookieHeader?: string): Record<string, string> => {
+/**
+ * Parses raw Cookie header string into key-value map.
+ * Safely handles URL encoded characters and malformed segments.
+ */
+export function parseCookies(cookieHeader?: string): Record<string, string> {
   const cookies: Record<string, string> = {};
-  if (!cookieHeader || typeof cookieHeader !== 'string') return cookies;
+  if (!cookieHeader || typeof cookieHeader !== 'string') {
+    return cookies;
+  }
 
   const pairs = cookieHeader.split(';');
   for (const pair of pairs) {
     const trimmed = pair.trim();
-    const equalsIndex = trimmed.indexOf('=');
+    if (!trimmed) continue;
 
-    // Extracting tokens
-    if (!trimmed || equalsIndex <= 0) continue;
+    const equalsIndex = trimmed.indexOf('=');
+    if (equalsIndex === -1) continue;
 
     const key = trimmed.slice(0, equalsIndex).trim();
     const rawVal = trimmed.slice(equalsIndex + 1).trim();
@@ -25,7 +31,7 @@ const parseCookies = (cookieHeader?: string): Record<string, string> => {
   }
 
   return cookies;
-};
+}
 
 /**
  * Extracts JWT access token from Socket handshake in priority order:
@@ -33,7 +39,7 @@ const parseCookies = (cookieHeader?: string): Record<string, string> => {
  * 2. HttpOnly cookie (access_token)
  * 3. socket.handshake.headers.authorization (Bearer <token>)
  */
-const extractSocketToken = (socket: AppSocket): string | undefined => {
+export function extractSocketToken(socket: AppSocket): string | undefined {
   // 1. Handshake auth object (Socket.IO client payload)
   const authToken = socket.handshake.auth?.token;
   if (typeof authToken === 'string' && authToken.trim()) {
@@ -61,7 +67,7 @@ const extractSocketToken = (socket: AppSocket): string | undefined => {
   }
 
   return undefined;
-};
+}
 
 /**
  * Socket.IO handshake authentication middleware.
@@ -69,12 +75,13 @@ const extractSocketToken = (socket: AppSocket): string | undefined => {
  * Attaches verified user context to socket.data.user.
  * Rejects unauthenticated connections with structured 401 error.
  */
-export const socketAuthMiddleware = (
+export function socketAuthMiddleware(
   socket: AppSocket,
-  next: (error?: SocketAuthError) => void
-): void => {
+  next: (err?: SocketAuthError) => void
+): void {
   try {
     const token = extractSocketToken(socket);
+
     if (!token) {
       const err = new UnauthorizedError(
         'Authentication token required',
@@ -105,4 +112,4 @@ export const socketAuthMiddleware = (
     next(err);
     return;
   }
-};
+}

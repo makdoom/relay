@@ -74,10 +74,20 @@ export interface DirectConversationResponse {
   recipient: SafeUserProfile;
 }
 
+export interface LastMessagePreview {
+  content: string;
+  senderId: string;
+  createdAt: string;
+}
+
 export interface DirectConversationItem {
   id: string;
   type: 'direct';
   recipient: SafeUserProfile;
+  recipientLastReadMessageId?: string | null;
+  lastReadMessageId?: string | null;
+  unreadCount?: number;
+  lastMessage?: LastMessagePreview | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -87,6 +97,9 @@ export interface GroupConversationItem {
   type: 'group';
   title: string | null;
   role: string;
+  lastReadMessageId?: string | null;
+  unreadCount?: number;
+  lastMessage?: LastMessagePreview | null;
   createdAt: string;
   updatedAt: string;
 }

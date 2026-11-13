@@ -45,3 +45,12 @@ export async function loginUser(input: LoginInput): Promise<User> {
 export async function logoutUser(): Promise<void> {
   await apiClient.post<{ message: string }>('/auth/logout');
 }
+
+/**
+ * Rotate the current refresh token and obtain fresh session cookies.
+ * Backend issues a new access token (15m) and rotated single-use refresh token (7d).
+ */
+export async function refreshAuthTokens(): Promise<User> {
+  const response = await apiClient.post<AuthResponse>('/auth/refresh');
+  return response.data.user;
+}
