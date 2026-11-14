@@ -4,6 +4,7 @@ import { Redis } from 'ioredis';
 import { Server } from 'socket.io';
 import { config } from '../config/index.js';
 import { logger } from '../logger/index.js';
+import { isOriginAllowed } from '../middleware/cors.js';
 import { conversationsRepository } from '../modules/conversations/conversations.repository.js';
 import { metrics } from '../observability/metrics.js';
 import {
@@ -170,20 +171,13 @@ export function createSocketServer(
   const io: AppSocketServer = new Server(httpServer, {
     ...(adapter ? { adapter } : {}),
     cors: {
-      origin:
-        config.env === 'development'
-          ? (origin, callback) => {
-              if (
-                !origin ||
-                origin === config.cors.origin ||
-                /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
-              ) {
-                callback(null, true);
-              } else {
-                callback(new Error('CORS origin denied'), false);
-              }
-            }
-          : config.cors.origin,
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('CORS origin denied'), false);
+        }
+      },
       credentials: true,
     },
     maxHttpBufferSize: 1e6, // 1 MB payload protection
