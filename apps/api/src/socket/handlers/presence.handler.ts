@@ -21,6 +21,27 @@ export function getUserRoomName(userId: string): string {
 }
 
 /**
+ * Generic interface for both in-memory and distributed presence tracking managers.
+ */
+export interface IPresenceManager {
+  addSocket(
+    userId: string,
+    socketId: string
+  ): Promise<{ isFirstConnection: boolean }> | { isFirstConnection: boolean };
+  removeSocket(
+    userId: string,
+    socketId: string
+  ): Promise<{ isLastDisconnection: boolean }> | { isLastDisconnection: boolean };
+  getUserStatus(userId: string): Promise<'online' | 'offline'> | ('online' | 'offline');
+  getUserStatuses(
+    userIds: string[]
+  ): Promise<Record<string, 'online' | 'offline'>> | Record<string, 'online' | 'offline'>;
+  getUserSocketCount?(userId: string): Promise<number> | number;
+  getOnlineUserCount?(): Promise<number> | number;
+  clearAllPresence?(): Promise<void> | void;
+}
+
+/**
  * In-memory presence manager maintaining active connection tracking per user.
  *
  * Implements Milestone 6.6 & ADR-008:
@@ -30,7 +51,7 @@ export function getUserRoomName(userId: string): string {
  * - Transitions to 'offline' ONLY when the last active socket disconnects.
  * - Ephemeral in-memory state: zero writes to PostgreSQL.
  */
-export class PresenceManager {
+export class PresenceManager implements IPresenceManager {
   private readonly userSockets = new Map<string, Set<string>>();
 
   /**
@@ -143,12 +164,12 @@ export const defaultPresenceManager = new PresenceManager();
 export function registerPresenceHandlers(
   _io: AppSocketServer,
   socket: AppSocket,
-  presenceManager: PresenceManager = defaultPresenceManager
+  presenceManager: IPresenceManager = defaultPresenceManager
 ): void {
   // Handle on-demand presence query ('presence:get')
   socket.on(
     'presence:get',
-    (
+    async (
       rawPayload: SocketPresenceQueryInput,
       ack: (response: SocketAck<SocketPresenceQueryAckData>) => void
     ) => {
@@ -165,7 +186,7 @@ export function registerPresenceHandlers(
       }
 
       const { userIds } = parsed.data;
-      const statuses = presenceManager.getUserStatuses(userIds);
+      const statuses = await presenceManager.getUserStatuses(userIds);
 
       if (typeof ack === 'function') {
         ack(createSocketSuccessAck<SocketPresenceQueryAckData>({ statuses }));

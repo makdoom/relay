@@ -14,12 +14,13 @@ import { registerMessageHandlers } from './handlers/messages.handler.js';
 import {
   defaultPresenceManager,
   getUserRoomName,
-  type PresenceManager,
+  type IPresenceManager,
   registerPresenceHandlers,
 } from './handlers/presence.handler.js';
 import { registerReadHandlers } from './handlers/read.handler.js';
 import { registerTypingHandlers } from './handlers/typing.handler.js';
 import { socketAuthMiddleware } from './middleware/auth.js';
+import { RedisPresenceManager } from './presence.redis.js';
 import type { AppSocketServer } from './types.js';
 
 export {
@@ -30,6 +31,7 @@ export { registerMessageHandlers } from './handlers/messages.handler.js';
 export {
   defaultPresenceManager,
   getUserRoomName,
+  type IPresenceManager,
   PresenceManager,
   registerPresenceHandlers,
 } from './handlers/presence.handler.js';
@@ -41,12 +43,13 @@ export {
   registerTypingHandlers,
 } from './handlers/typing.handler.js';
 export { socketAuthMiddleware } from './middleware/auth.js';
+export { RedisPresenceManager } from './presence.redis.js';
 export * from './schemas.js';
 export * from './types.js';
 export { createAdapter };
 
 export interface CreateSocketServerOptions {
-  presenceManager?: PresenceManager;
+  presenceManager?: IPresenceManager;
   redisUrl?: string;
   pubClient?: InstanceType<typeof Redis>;
   subClient?: InstanceType<typeof Redis>;
@@ -96,9 +99,7 @@ export function createSocketServer(
   httpServer: HttpServer,
   options: CreateSocketServerOptions = {}
 ): AppSocketServer {
-  const presence = options.presenceManager ?? defaultPresenceManager;
-
-  // biome-ignore lint/suspicious/noImplicitAnyLet: <TODO>
+  // biome-ignore lint/suspicious/noImplicitAnyLet: <todo>
   let adapter;
   let pubClient: InstanceType<typeof Redis> | undefined = options.pubClient;
   let subClient: InstanceType<typeof Redis> | undefined = options.subClient;
@@ -162,6 +163,10 @@ export function createSocketServer(
     logger.info('REDIS_URL not configured. Running with default in-memory Socket.IO adapter');
   }
 
+  const presence: IPresenceManager =
+    options.presenceManager ??
+    (pubClient ? new RedisPresenceManager(pubClient) : defaultPresenceManager);
+
   const io: AppSocketServer = new Server(httpServer, {
     ...(adapter ? { adapter } : {}),
     cors: {
@@ -205,7 +210,12 @@ export function createSocketServer(
           try {
             await Promise.race([
               client.quit(),
-              new Promise((r) => setTimeout(() => client.disconnect(), 1000)),
+              new Promise<void>((resolve) =>
+                setTimeout(() => {
+                  client.disconnect();
+                  resolve();
+                }, 1000)
+              ),
             ]);
           } catch {
             client.disconnect();
@@ -221,7 +231,7 @@ export function createSocketServer(
   // Enforce handshake authentication
   io.use(socketAuthMiddleware);
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const userId = socket.data.user.id;
     logger.info('Socket client connected', {
       socketId: socket.id,
@@ -248,9 +258,13 @@ export function createSocketServer(
 
     // Track active connection and emit online broadcast if first socket
     metrics.incrementActiveSockets();
-    const { isFirstConnection } = presence.addSocket(userId, socket.id);
+    const { isFirstConnection } = await presence.addSocket(userId, socket.id);
     if (isFirstConnection) {
-      io.emit('presence:update', { userId, status: 'online' });
+      try {
+        io.emit('presence:update', { userId, status: 'online' });
+      } catch (err) {
+        logger.warn('Failed to broadcast presence:update online', { userId, error: String(err) });
+      }
     }
 
     // Register domain event handlers
@@ -260,7 +274,7 @@ export function createSocketServer(
     registerPresenceHandlers(io, socket, presence);
     registerReadHandlers(io, socket);
 
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', async (reason) => {
       metrics.decrementActiveSockets();
       logger.info('Socket client disconnected', {
         socketId: socket.id,
@@ -269,9 +283,16 @@ export function createSocketServer(
       });
 
       // Untrack socket and emit offline broadcast if last connection closed
-      const { isLastDisconnection } = presence.removeSocket(userId, socket.id);
+      const { isLastDisconnection } = await presence.removeSocket(userId, socket.id);
       if (isLastDisconnection) {
-        io.emit('presence:update', { userId, status: 'offline' });
+        try {
+          io.emit('presence:update', { userId, status: 'offline' });
+        } catch (err) {
+          logger.warn('Failed to broadcast presence:update offline', {
+            userId,
+            error: String(err),
+          });
+        }
       }
     });
   });
