@@ -1,6 +1,9 @@
 import type { Request, Response } from 'express';
 import { BadRequestError, UnauthorizedError } from '../../error/index.js';
-import { type AppSocketServer, getConversationRoomName } from '../../socket/index.js';
+import { logger } from '../../logger/index.js';
+import { metrics } from '../../observability/metrics.js';
+import { getConversationRoomName } from '../../socket/handlers/conversations.handler.js';
+import type { AppSocketServer } from '../../socket/types.js';
 import {
   conversationIdParamSchema,
   listMessagesQuerySchema,
@@ -9,9 +12,13 @@ import {
 import { messagesService } from './messages.service.js';
 
 export const messagesController = {
-  // Validates message payload shape, derives authenticated sender, and authorizes conversation membership.
+  /**
+   * Validates message payload shape, derives authenticated sender, and authorizes conversation membership.
+   */
   async sendMessage(req: Request, res: Response): Promise<void> {
-    if (!req.user?.id) throw new UnauthorizedError('Authentication required', 'UNAUTHORIZED');
+    if (!req.user?.id) {
+      throw new UnauthorizedError('Authentication required', 'UNAUTHORIZED');
+    }
 
     const paramResult = conversationIdParamSchema.safeParse(req.params);
     if (!paramResult.success) {
@@ -32,11 +39,19 @@ export const messagesController = {
       idempotencyKey: bodyResult.data.idempotencyKey,
     });
 
-    if (!result.isDuplicate) {
-      const io = req.app.get('io') as AppSocketServer | undefined;
-      if (io) {
+    // Real-time delivery: broadcast to online recipients in the conversation room
+    const io = req.app.get('io') as AppSocketServer | undefined;
+    if (io && !result.isDuplicate) {
+      try {
         io.to(getConversationRoomName(paramResult.data.conversationId)).emit('message:new', {
           message: result.message,
+        });
+      } catch (broadcastErr) {
+        metrics.incrementRedisBroadcastErrors();
+        logger.warn('Failed to broadcast message:new via Socket.IO/Redis adapter', {
+          conversationId: paramResult.data.conversationId,
+          messageId: result.message.id,
+          error: broadcastErr instanceof Error ? broadcastErr.message : String(broadcastErr),
         });
       }
     }

@@ -5,6 +5,7 @@ import { socketMessageRateLimiter } from '../../middleware/rateLimiter.js';
 import type { PaginatedMessagesResponse } from '../../modules/messages/messages.schema.js';
 import { messagesService } from '../../modules/messages/messages.service.js';
 import { runWithContext } from '../../observability/context.js';
+import { metrics } from '../../observability/metrics.js';
 import {
   createSocketErrorAck,
   createSocketSuccessAck,
@@ -71,9 +72,18 @@ export function registerMessageHandlers(_io: AppSocketServer, socket: AppSocket)
         // 3. Real-time delivery: broadcast to online recipients in the conversation room
         // Duplicate retries (idempotency hits) are not re-broadcasted to avoid noise
         if (!result.isDuplicate) {
-          socket.to(getConversationRoomName(conversationId)).emit('message:new', {
-            message: result.message,
-          });
+          try {
+            socket.to(getConversationRoomName(conversationId)).emit('message:new', {
+              message: result.message,
+            });
+          } catch (broadcastErr) {
+            metrics.incrementRedisBroadcastErrors();
+            logger.warn('Failed to broadcast message:new to room (Redis adapter degraded)', {
+              conversationId,
+              messageId: result.message.id,
+              error: broadcastErr instanceof Error ? broadcastErr.message : String(broadcastErr),
+            });
+          }
         }
 
         // 4. Return persistence acknowledgement to sender via callback

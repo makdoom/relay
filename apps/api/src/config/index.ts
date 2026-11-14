@@ -23,6 +23,7 @@ const envSchema = z
     DATABASE_IDLE_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(20),
     DATABASE_CONNECT_TIMEOUT_SECONDS: z.coerce.number().int().positive().default(10),
     DATABASE_STATEMENT_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
+    REDIS_URL: z.string().optional(),
     JWT_ACCESS_SECRET: z
       .string()
       .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters')
@@ -110,6 +111,9 @@ export type Config = {
     messageWindowMs: number;
     messageMax: number;
   };
+  redis: {
+    url?: string;
+  };
 };
 
 export function validateConfig(rawEnv: Record<string, string | undefined> = process.env): Config {
@@ -182,6 +186,9 @@ export function validateConfig(rawEnv: Record<string, string | undefined> = proc
       apiMax: RATE_LIMIT_API_MAX,
       messageWindowMs: RATE_LIMIT_MESSAGE_WINDOW_MS,
       messageMax: RATE_LIMIT_MESSAGE_MAX,
+    },
+    redis: {
+      url: result.data.REDIS_URL,
     },
   };
 }

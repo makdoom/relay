@@ -1,8 +1,8 @@
 import type { Server } from 'node:http';
 import { logger } from './logger/index.js';
 
-type CleanupHandler = () => Promise<void> | void;
-type ExitHandler = (code: number) => void;
+export type CleanupHandler = () => Promise<void> | void;
+export type ExitHandler = (code: number) => void;
 
 export class ShutdownManager {
   private isShuttingDown = false;
@@ -20,22 +20,22 @@ export class ShutdownManager {
     this.server = server;
   }
 
-  public registerCleanup(name: string, handler: CleanupHandler) {
+  public registerCleanup(name: string, handler: CleanupHandler): void {
     this.cleanupHandlers.push({ name, handler });
+  }
+
+  public getIsShuttingDown(): boolean {
+    return this.isShuttingDown;
   }
 
   public async shutdown(signal: string): Promise<void> {
     if (this.isShuttingDown) {
-      logger.warn('Shutdown already in progress, ignoring duplicate signal', {
-        signal,
-      });
+      logger.warn('Shutdown already in progress, ignoring duplicate signal', { signal });
       return;
     }
 
     this.isShuttingDown = true;
-    logger.info(`Received ${signal}. Starting graceful shutdown...`, {
-      signal,
-    });
+    logger.info(`Received ${signal}. Starting graceful shutdown...`, { signal });
 
     // Enforce bounded timeout to prevent hanging indefinitely
     const forceExitTimer = setTimeout(() => {
@@ -45,12 +45,11 @@ export class ShutdownManager {
       this.exitHandler(1);
     }, this.timeoutMs);
 
-    // Do not wait for the timer if there's no activity in the event loop
     forceExitTimer.unref();
 
     try {
-      // Step 1: Close the HTTP Server (stop accepting new connections)
-      if (this.server?.listening) {
+      // 1. Stop accepting new HTTP connections
+      if (this.server && this.server.listening) {
         await new Promise<void>((resolve, reject) => {
           this.server?.close((err) => {
             if (err) {
@@ -70,9 +69,11 @@ export class ShutdownManager {
         logger.info(`Resource closed: ${name}`);
       }
 
+      clearTimeout(forceExitTimer);
       logger.info('Graceful shutdown completed successfully');
       this.exitHandler(0);
     } catch (error) {
+      clearTimeout(forceExitTimer);
       logger.error('Error during graceful shutdown', {
         error: error instanceof Error ? error.message : String(error),
       });
@@ -92,9 +93,8 @@ export class ShutdownManager {
 
 export const shutdownManager = new ShutdownManager();
 
-export const setupGracefullShutdown = (server: Server): ShutdownManager => {
+export function setupGracefulShutdown(server: Server): ShutdownManager {
   shutdownManager.registerServer(server);
   shutdownManager.attachSignalListeners();
-
   return shutdownManager;
-};
+}

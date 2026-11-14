@@ -23,6 +23,8 @@ export class MetricsRegistry {
 
   // Gauges
   private activeSocketConnections = 0;
+  private redisConnected = 0; // 0: disconnected/not configured, 1: connected
+  private redisBroadcastErrorsTotal = 0;
 
   // Latency samples: key -> number[]
   private httpRequestDurations = new Map<string, number[]>();
@@ -36,6 +38,8 @@ export class MetricsRegistry {
     this.messagesPersistedTotal.clear();
     this.idempotencyHitsTotal.clear();
     this.activeSocketConnections = 0;
+    this.redisConnected = 0;
+    this.redisBroadcastErrorsTotal = 0;
     this.httpRequestDurations.clear();
     this.messagePersistenceDurations = [];
   }
@@ -104,6 +108,25 @@ export class MetricsRegistry {
 
   public getActiveSockets(): number {
     return this.activeSocketConnections;
+  }
+
+  /**
+   * Redis coordination telemetry methods (Milestone 9.4).
+   */
+  public setRedisConnected(connected: boolean): void {
+    this.redisConnected = connected ? 1 : 0;
+  }
+
+  public getRedisConnected(): boolean {
+    return this.redisConnected === 1;
+  }
+
+  public incrementRedisBroadcastErrors(): void {
+    this.redisBroadcastErrorsTotal++;
+  }
+
+  public getRedisBroadcastErrors(): number {
+    return this.redisBroadcastErrorsTotal;
   }
 
   /**
@@ -226,6 +249,18 @@ export class MetricsRegistry {
     }
     lines.push('');
 
+    // 7. Redis Coordination Status & Broadcast Errors
+    lines.push(
+      '# HELP echo_redis_connected Redis Pub/Sub connection status (1 for connected, 0 for disconnected)'
+    );
+    lines.push('# TYPE echo_redis_connected gauge');
+    lines.push(`echo_redis_connected ${this.redisConnected}`);
+    lines.push('');
+    lines.push('# HELP echo_redis_broadcast_errors_total Total number of failed Redis broadcasts');
+    lines.push('# TYPE echo_redis_broadcast_errors_total counter');
+    lines.push(`echo_redis_broadcast_errors_total ${this.redisBroadcastErrorsTotal}`);
+    lines.push('');
+
     return lines.join('\n');
   }
 
@@ -242,6 +277,8 @@ export class MetricsRegistry {
       httpRequestsTotal: Object.fromEntries(this.httpRequestsTotal.entries()),
       httpLatencySummary: httpSummary,
       activeSocketConnections: this.activeSocketConnections,
+      redisConnected: this.redisConnected === 1,
+      redisBroadcastErrorsTotal: this.redisBroadcastErrorsTotal,
       messagesPersistedTotal: Object.fromEntries(this.messagesPersistedTotal.entries()),
       messagePersistenceSummary: this.calculateSummary(this.messagePersistenceDurations),
       idempotencyHitsTotal: Object.fromEntries(this.idempotencyHitsTotal.entries()),
