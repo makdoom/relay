@@ -12,7 +12,7 @@ import {
 } from './ui/dropdown-menu';
 
 const UserProfile = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   return (
     <div>
       <DropdownMenu>
@@ -29,21 +29,21 @@ const UserProfile = () => {
           <DropdownMenuGroup>
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span className="text-foreground text-sm">"Makdoom Shaikh</span>
-                <span className="text-muted-foreground text-xs">makshaikh99@gmail.com</span>
+                <span className="text-foreground text-sm">{user?.name}</span>
+                <span className="text-muted-foreground text-xs">{user?.email}</span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem disabled>
                 <UserIcon className="size-4 opacity-60" aria-hidden="true" />
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem disabled>
                 <CreditCardIcon className="size-4 opacity-60" aria-hidden="true" />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem disabled>
                 <SettingsIcon className="size-4 opacity-60" aria-hidden="true" />
                 Settings
               </DropdownMenuItem>

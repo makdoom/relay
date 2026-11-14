@@ -11,7 +11,7 @@ interface RetriableRequestConfig extends InternalAxiosRequestConfig {
  * Configured per ADR-011 with withCredentials: true for HttpOnly cookie authentication (ADR-002).
  */
 export const apiClient = axios.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

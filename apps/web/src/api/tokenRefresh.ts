@@ -104,9 +104,14 @@ export async function executeTokenRefresh(): Promise<User> {
 
   inFlightRefreshPromise = (async () => {
     try {
+      const apiBase = import.meta.env.VITE_API_URL || '/api/v1';
+      const refreshUrl = apiBase.endsWith('/')
+        ? `${apiBase}auth/refresh`
+        : `${apiBase}/auth/refresh`;
+
       // Direct call using base axios to bypass apiClient response interceptors
       const response = await axios.post<AuthResponse>(
-        '/api/v1/auth/refresh',
+        refreshUrl,
         {},
         {
           withCredentials: true,
