@@ -1,6 +1,8 @@
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express, { type Application } from 'express';
 import { config } from './config/index.js';
+import { corsOptions } from './middleware/cors.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { apiRateLimitMiddleware } from './middleware/rateLimiter.js';
@@ -13,6 +15,10 @@ import { userRouter } from './modules/users/users.route.js';
 
 export function createApp(): Application {
   const app = express();
+
+  // CORS middleware - handles headers and preflight OPTIONS requests early
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
 
   // Correlation ID & distributed context middleware (Milestone 8.3)
   app.use(requestIdMiddleware);
