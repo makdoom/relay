@@ -3,7 +3,7 @@ import { app } from './app.js';
 import { config } from './config/index.js';
 import { checkDatabaseConnection, closeDatabaseConnection } from './db/index.js';
 import { logger } from './logger/index.js';
-import { setupGracefullShutdown, shutdownManager } from './shutdown.js';
+import { setupGracefulShutdown, shutdownManager } from './shutdown.js';
 import { createSocketServer } from './socket/index.js';
 
 const server = createServer(app);
@@ -18,7 +18,7 @@ server.listen(config.port, config.host, () => {
   });
 });
 
-setupGracefullShutdown(server);
+setupGracefulShutdown(server);
 shutdownManager.registerCleanup('db-pool', () => closeDatabaseConnection());
 shutdownManager.registerCleanup(
   'socket-server',

@@ -1,4 +1,6 @@
 import type { Server as HttpServer } from 'node:http';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { Redis } from 'ioredis';
 import { Server } from 'socket.io';
 import { config } from '../config/index.js';
 import { logger } from '../logger/index.js';
@@ -41,15 +43,54 @@ export {
 export { socketAuthMiddleware } from './middleware/auth.js';
 export * from './schemas.js';
 export * from './types.js';
+export { createAdapter };
 
 export interface CreateSocketServerOptions {
   presenceManager?: PresenceManager;
+  redisUrl?: string;
+  pubClient?: InstanceType<typeof Redis>;
+  subClient?: InstanceType<typeof Redis>;
+}
+
+export interface RedisStatus {
+  configured: boolean;
+  connected: boolean;
+  status: string;
+}
+
+/**
+ * Returns current Redis connection and configuration health status for Socket.IO.
+ */
+export function getRedisStatus(io?: AppSocketServer): RedisStatus {
+  const clients = (
+    io as unknown as {
+      redisClients?: {
+        pubClient?: InstanceType<typeof Redis>;
+        subClient?: InstanceType<typeof Redis>;
+      };
+    }
+  )?.redisClients;
+
+  if (!clients?.pubClient) {
+    return {
+      configured: false,
+      connected: false,
+      status: 'disabled',
+    };
+  }
+
+  const status = clients.pubClient.status;
+  return {
+    configured: true,
+    connected: status === 'ready',
+    status,
+  };
 }
 
 /**
  * Creates and configures the Socket.IO server attached to an HTTP server.
  * Applies CORS, buffer limits, handshake authentication middleware, connection lifecycle logging,
- * and ephemeral presence tracking.
+ * ephemeral presence tracking, and optional Redis Pub/Sub adapter for cross-instance fanout.
  */
 export function createSocketServer(
   httpServer: HttpServer,
@@ -57,7 +98,72 @@ export function createSocketServer(
 ): AppSocketServer {
   const presence = options.presenceManager ?? defaultPresenceManager;
 
+  // biome-ignore lint/suspicious/noImplicitAnyLet: <TODO>
+  let adapter;
+  let pubClient: InstanceType<typeof Redis> | undefined = options.pubClient;
+  let subClient: InstanceType<typeof Redis> | undefined = options.subClient;
+  let ownsRedisClients = false;
+
+  const redisUrl = options.redisUrl ?? config.redis.url;
+
+  const registerRedisEvents = (
+    pub: InstanceType<typeof Redis>,
+    sub: InstanceType<typeof Redis>
+  ) => {
+    pub.on('connect', () => {
+      metrics.setRedisConnected(true);
+      logger.info('Socket.IO Redis pubClient connected');
+    });
+    pub.on('ready', () => {
+      metrics.setRedisConnected(true);
+      logger.info('Socket.IO Redis pubClient ready');
+    });
+    pub.on('close', () => {
+      metrics.setRedisConnected(false);
+      logger.warn('Socket.IO Redis pubClient connection closed');
+    });
+    pub.on('error', (err: Error) => {
+      metrics.setRedisConnected(false);
+      logger.warn('Socket.IO Redis pubClient error', { error: err.message });
+    });
+
+    sub.on('close', () => {
+      logger.warn('Socket.IO Redis subClient connection closed');
+    });
+    sub.on('error', (err: Error) => {
+      logger.warn('Socket.IO Redis subClient error', { error: err.message });
+    });
+
+    if (pub.status === 'ready') {
+      metrics.setRedisConnected(true);
+    }
+  };
+
+  if (pubClient && subClient) {
+    registerRedisEvents(pubClient, subClient);
+    adapter = createAdapter(pubClient, subClient);
+  } else if (redisUrl) {
+    pubClient = new Redis(redisUrl, {
+      maxRetriesPerRequest: null,
+      enableReadyCheck: true,
+      retryStrategy(times: number) {
+        return Math.min(times * 200, 2000);
+      },
+    });
+    subClient = pubClient.duplicate();
+    ownsRedisClients = true;
+
+    registerRedisEvents(pubClient, subClient);
+    adapter = createAdapter(pubClient, subClient);
+    logger.info('Socket.IO configured with Redis Pub/Sub adapter', {
+      redisTarget: redisUrl.replace(/\/\/[^@]*@/, '//***@'),
+    });
+  } else {
+    logger.info('REDIS_URL not configured. Running with default in-memory Socket.IO adapter');
+  }
+
   const io: AppSocketServer = new Server(httpServer, {
+    ...(adapter ? { adapter } : {}),
     cors: {
       origin:
         config.env === 'development'
@@ -77,6 +183,40 @@ export function createSocketServer(
     },
     maxHttpBufferSize: 1e6, // 1 MB payload protection
   });
+
+  if (pubClient && subClient) {
+    Object.assign(io, {
+      redisClients: { pubClient, subClient },
+    });
+  }
+
+  const originalClose = io.close.bind(io);
+  io.close = (async (fn?: (err?: Error) => void): Promise<void> => {
+    metrics.setRedisConnected(false);
+    await new Promise<void>((resolve) => {
+      originalClose((err) => {
+        if (fn) fn(err);
+        resolve();
+      });
+    });
+    if (ownsRedisClients && pubClient && subClient) {
+      const closeClient = async (client: InstanceType<typeof Redis>) => {
+        if (client.status === 'ready') {
+          try {
+            await Promise.race([
+              client.quit(),
+              new Promise((r) => setTimeout(() => client.disconnect(), 1000)),
+            ]);
+          } catch {
+            client.disconnect();
+          }
+        } else {
+          client.disconnect();
+        }
+      };
+      await Promise.allSettled([closeClient(pubClient), closeClient(subClient)]);
+    }
+  }) as typeof io.close;
 
   // Enforce handshake authentication
   io.use(socketAuthMiddleware);
