@@ -18,8 +18,10 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
     setConnectionStatus('connecting');
 
+    const wsUrl = import.meta.env.VITE_WS_URL || undefined;
+
     // Initialize Socket.IO client passing HttpOnly auth cookies (ADR-002, Phase 3.6)
-    const client = io({
+    const client = io(wsUrl, {
       path: '/socket.io',
       withCredentials: true,
       autoConnect: true,

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import z from 'zod';
 import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -164,9 +164,9 @@ const Register = () => {
         <div className="w-full">
           <p className="text-center text-muted-foreground text-sm">
             Already have an account ?{' '}
-            <a className="hover:underline text-foreground" href="/login">
+            <Link className="hover:underline text-foreground" to="/login">
               Signin
-            </a>
+            </Link>
           </p>
         </div>
       </div>
