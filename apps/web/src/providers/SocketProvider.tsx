@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import { refreshAuthTokens } from '@/api/auth.api';
+import { refreshAuthTokens, triggerAuthFailure } from '@/api/auth.api';
 import { SocketContext, type SocketContextValue } from '@/context/SocketContext';
 import { useAuth } from '@/hooks/useAuth';
 import type { ConnectionStatus } from '@/types/socket';
@@ -53,7 +53,8 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
           await refreshAuthTokens();
           client.connect();
         } catch {
-          // Token refresh failure will be handled by AuthContext onAuthFailure
+          // Token refresh failure triggers auth failure logout
+          triggerAuthFailure();
         }
       }
     });

@@ -1,5 +1,13 @@
 import type { AuthResponse, LoginInput, RegisterInput, User } from '@/types/auth';
 import { apiClient } from './client';
+import {
+  broadcastLogout,
+  executeTokenRefresh,
+  setOnAuthFailure,
+  triggerAuthFailure,
+} from './tokenRefresh';
+
+export { setOnAuthFailure, triggerAuthFailure };
 
 /**
  * Auth API service interacting with Echo backend auth endpoints.
@@ -43,14 +51,18 @@ export async function loginUser(input: LoginInput): Promise<User> {
  * Log out current session, revoking the refresh token and clearing authentication cookies.
  */
 export async function logoutUser(): Promise<void> {
-  await apiClient.post<{ message: string }>('/auth/logout');
+  try {
+    await apiClient.post<{ message: string }>('/auth/logout');
+  } finally {
+    broadcastLogout();
+  }
 }
 
 /**
  * Rotate the current refresh token and obtain fresh session cookies.
  * Backend issues a new access token (15m) and rotated single-use refresh token (7d).
+ * Protected by single-flight mutex to avoid concurrent rotation race conditions.
  */
 export async function refreshAuthTokens(): Promise<User> {
-  const response = await apiClient.post<AuthResponse>('/auth/refresh');
-  return response.data.user;
+  return executeTokenRefresh();
 }
