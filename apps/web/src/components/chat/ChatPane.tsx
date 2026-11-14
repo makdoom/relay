@@ -1,7 +1,9 @@
 import { Hash } from 'lucide-react';
+import { useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useConversation } from '@/hooks/useConversation';
 import { useMessages } from '@/hooks/useMessage';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import MessageComposor from '../message/MessageComposor';
 import MessageTimeline from '../message/MessageTimeline';
 import EmptyChat from './EmptyChat';
@@ -25,6 +27,22 @@ const ChatPane = () => {
     loadOlderMessages,
     retryMessage,
   } = useMessages(selectedConversation?.id ?? null, user?.id, initialPeerReadId);
+
+  const { typingUserIds, sendTypingStart, sendTypingStop } = useTypingIndicator(
+    selectedConversation?.id ?? null,
+    user?.id
+  );
+
+  const typingLabel = useMemo(() => {
+    if (!selectedConversation || typingUserIds.length === 0) return null;
+    if (selectedConversation.type === 'direct') {
+      return `${selectedConversation.recipient.name} is typing...`;
+    }
+    if (typingUserIds.length === 1) {
+      return 'Someone is typing...';
+    }
+    return `${typingUserIds.length} people are typing...`;
+  }, [typingUserIds, selectedConversation]);
 
   if (!selectedConversation) return <EmptyChat />;
 
@@ -80,12 +98,35 @@ const ChatPane = () => {
         onRetryMessage={retryMessage}
       />
 
+      {/* Ephemeral Typing Indicator (ADR-008, Milestone 6.5) */}
+      <div className="h-5 px-4 flex items-center gap-2 text-[11px] font-mono text-muted-foreground select-none shrink-0 transition-opacity">
+        {typingLabel && (
+          <div className="flex items-center gap-1.5 text-muted-foreground animate-fade-in">
+            <span className="flex items-center gap-0.5">
+              <span
+                className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce"
+                style={{ animationDelay: '0ms' }}
+              />
+              <span
+                className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce"
+                style={{ animationDelay: '150ms' }}
+              />
+              <span
+                className="w-1 h-1 rounded-full bg-emerald-400 animate-bounce"
+                style={{ animationDelay: '300ms' }}
+              />
+            </span>
+            <span className="text-[11px] font-mono text-zinc-400 italic">{typingLabel}</span>
+          </div>
+        )}
+      </div>
+
       {/* Docked Message Composer */}
       <MessageComposor
         placeholder={`Type a message`}
         onSend={sendTextMessage}
-        // onTyping={sendTypingStart}
-        // onStopTyping={sendTypingStop}
+        onTyping={sendTypingStart}
+        onStopTyping={sendTypingStop}
         disabled={isLoadingHistory}
       />
     </main>
