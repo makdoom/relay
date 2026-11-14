@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
-import { getCurrentUser, loginUser, logoutUser, registerUser } from '@/api/auth.api';
+import {
+  getCurrentUser,
+  loginUser,
+  logoutUser,
+  refreshAuthTokens,
+  registerUser,
+  setOnAuthFailure,
+} from '@/api/auth.api';
 import { ApiError } from '@/lib/error';
 import type { LoginInput, RegisterInput, User } from '@/types/auth';
 import { AuthContext, type AuthContextValue } from '../context/AuthContext';
@@ -10,6 +17,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   const clearError = () => setError(null);
+
+  // Subscribe to auth failure events (e.g. refresh token expired or revoked in any tab)
+  useEffect(() => {
+    setOnAuthFailure(() => {
+      setUser(null);
+    });
+
+    return () => {
+      setOnAuthFailure(null);
+    };
+  }, []);
 
   // Hydrate session on application startup
   useEffect(() => {
@@ -34,6 +52,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isMounted = false;
     };
   }, []);
+
+  // Proactively refresh access token before it expires at 15 minutes (run every 14 minutes)
+  useEffect(() => {
+    if (!user) return;
+
+    const FOURTEEN_MINUTES_MS = 14 * 60 * 1000;
+    const interval = setInterval(() => {
+      refreshAuthTokens().catch(() => {
+        // Handled by setOnAuthFailure on unrecoverable rejection
+      });
+    }, FOURTEEN_MINUTES_MS);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [user]);
 
   const login = async (data: LoginInput) => {
     setError(null);
